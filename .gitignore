@@ -1,2 +1,7 @@
 # venv
 venv_investimentos/
+
+# local settings
+Pipfile/
+Pipfile.lock/
+.vscode/
