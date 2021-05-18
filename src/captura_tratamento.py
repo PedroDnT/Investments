@@ -52,4 +52,5 @@ class Investimentos:
         inpc = inpc[['data', 'mes_%']]
         inpc = inpc[inpc['data'] > '2012-05-01']
         inpc['mes_%'] = inpc['mes_%'].astype('float32')
+        inpc.reset_index(drop=True, inplace=True)
         return inpc
