@@ -5,15 +5,18 @@ class Investimentos:
     '''
     --> Captura e trata as informações referente a investimentos e indicadores
     '''
-    def __init__(self, historico_poupanca=None, historico_inpc=None):
+    def __init__(self, historico_poupanca=None, historico_inpc=None, historico_ipca=None):
         '''
         :param histico_poupanca: Arquivo com o histórico dos pagamentos da poupança disponível em: 
         https://www3.bcb.gov.br/sgspub/localizarseries/localizarSeries.do?method=prepararTelaLocalizarSeries
         :param historico_inpc: Arquivo com o histórico do índice INPC disponível em: 
         https://www.ibge.gov.br/estatisticas/economicas/precos-e-custos/9258-indice-nacional-de-precos-ao-consumidor.html?t=series-historicas
+        :param historico_ipca: Arquivo com o histórico do índice IPCA disponível em: 
+        https://www.ibge.gov.br/estatisticas/economicas/precos-e-custos/9258-indice-nacional-de-precos-ao-consumidor.html?t=series-historicas
         '''
         self._historico_poupanca = historico_poupanca
-        self._historico_ipca = historico_inpc
+        self._historico_inpc = historico_inpc
+        self._historico_ipca = historico_ipca
         
 
     def rendimentos_poupanca(self):
@@ -28,6 +31,7 @@ class Investimentos:
         poupanca['rentabilidade'] = poupanca['rentabilidade'].astype('float32')
         return poupanca
     
+
     def indice_inpc(self, renomeia_mes={'JAN': '1', 
                                         'FEV': '2', 
                                         'MAR': '3', 
@@ -40,7 +44,10 @@ class Investimentos:
                                         'OUT': '10', 
                                         'NOV': '11', 
                                         'DEZ': '12'}):
-        inpc = pd.read_excel(self._historico_ipca, header=6, skiprows=1)
+        '''
+        --> Faz a leitura e tratamento dos histórico do índice INPC apurado pelo IBGE
+        '''
+        inpc = pd.read_excel(self._historico_inpc, header=6, skiprows=1)
         inpc = inpc.iloc[:, :4]
         inpc.columns = ['ano', 'mes', 'n_indice', 'mes_%']
         inpc['ano'] = inpc['ano'].fillna(method='ffill')
@@ -54,3 +61,34 @@ class Investimentos:
         inpc['mes_%'] = inpc['mes_%'].astype('float32')
         inpc.reset_index(drop=True, inplace=True)
         return inpc
+
+
+    def indice_ipca(self, renomeia_mes={'JAN': '1', 
+                                        'FEV': '2', 
+                                        'MAR': '3', 
+                                        'ABR': '4', 
+                                        'MAI': '5', 
+                                        'JUN': '6', 
+                                        'JUL': '7', 
+                                        'AGO': '8', 
+                                        'SET': '9',
+                                        'OUT': '10', 
+                                        'NOV': '11', 
+                                        'DEZ': '12'}):
+        '''
+        --> Faz a leitura e tratamento dos histórico do índice IPCA apurado pelo IBGE
+        '''
+        ipca = pd.read_excel(self._historico_ipca, header=6, skiprows=1)
+        ipca = ipca.iloc[:, :4]
+        ipca.columns = ['ano', 'mes', 'n_indice', 'mes_%']
+        ipca['ano'] = ipca['ano'].fillna(method='ffill')
+        ipca.dropna(inplace=True)
+        ipca['mes'] = ipca['mes'].map(renomeia_mes)
+        ipca['ano'] = ipca['ano'].astype('str')
+        ipca['data'] = ipca['ano'] + '-' + ipca['mes']
+        ipca['data'] = pd.to_datetime(ipca['data'])
+        ipca = ipca[['data', 'mes_%']]
+        ipca = ipca[ipca['data'] > '2012-05-01']
+        ipca['mes_%'] = ipca['mes_%'].astype('float32')
+        ipca.reset_index(drop=True, inplace=True)
+        return ipca
