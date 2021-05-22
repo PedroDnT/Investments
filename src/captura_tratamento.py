@@ -1,4 +1,31 @@
 import pandas as pd
+import shutil
+import urllib.request as request
+from contextlib import closing
+import os
+
+
+class BaixaArquivos:
+    '''
+    --> Baixa os arquivos para tratamento e análise
+    '''
+    def __init__(self, 
+                link_inpc='https://ftp.ibge.gov.br/Precos_Indices_de_Precos_ao_Consumidor/INPC/Serie_Historica/inpc_SerieHist.zip'):
+        '''
+        :link_inpc: Link para baixar o arquivo com a série historica do INPC
+        '''
+        self._link_inpc = link_inpc
+
+    
+    def baixa_inpc(self):
+        '''
+        --> Baixa o arquivo com a série histórica do INPC
+        '''
+        with closing(request.urlopen(self._link_inpc)) as r:
+            with open('inpc_SerieHist.zip', 'wb') as f:
+                shutil.copyfileobj(r, f)
+        shutil.move('/home/marcos/Documents/Investimentos/src/inpc_SerieHist.zip', 
+                    '/home/marcos/Documents/Investimentos/dados/inpc.zip')
 
 
 class Investimentos:
