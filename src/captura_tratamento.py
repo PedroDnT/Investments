@@ -2,6 +2,7 @@ import pandas as pd
 import shutil
 import urllib.request as request
 from contextlib import closing
+from zipfile import ZipFile
 import os
 
 
@@ -10,22 +11,56 @@ class BaixaArquivos:
     --> Baixa os arquivos para tratamento e análise
     '''
     def __init__(self, 
-                link_inpc='https://ftp.ibge.gov.br/Precos_Indices_de_Precos_ao_Consumidor/INPC/Serie_Historica/inpc_SerieHist.zip'):
+                link_inpc='https://ftp.ibge.gov.br/Precos_Indices_de_Precos_ao_Consumidor/INPC/Serie_Historica/inpc_SerieHist.zip',
+                link_ipca='https://ftp.ibge.gov.br/Precos_Indices_de_Precos_ao_Consumidor/IPCA/Serie_Historica/ipca_SerieHist.zip'):
         '''
         :link_inpc: Link para baixar o arquivo com a série historica do INPC
+        :link_ipca: Link para baixar o arquivo com a série historica do IPCA
         '''
         self._link_inpc = link_inpc
+        self._link_ipca = link_ipca
 
     
     def baixa_inpc(self):
         '''
         --> Baixa o arquivo com a série histórica do INPC
         '''
+        # Baixando arquivo da internet
         with closing(request.urlopen(self._link_inpc)) as r:
             with open('inpc_SerieHist.zip', 'wb') as f:
                 shutil.copyfileobj(r, f)
-        shutil.move('/home/marcos/Documents/Investimentos/src/inpc_SerieHist.zip', 
-                    '/home/marcos/Documents/Investimentos/dados/inpc.zip')
+        # Movendo e renomeando o arquivo zip
+        shutil.move('inpc_SerieHist.zip', 
+                    './dados/inpc.zip')
+        # Extraindo o arquivo xls e renomeando o arquivo
+        with ZipFile('./dados/inpc.zip', 'r') as zip_ref:
+            zip_ref.extractall('./dados')
+        if os.path.exists('.dados/inpc.xls'):
+            os.remove('./dados/inpc.xls')
+            os.rename('./dados/inpc_202104SerieHist.xls', './dados/inpc.xls')
+        else:
+            os.rename('./dados/inpc_202104SerieHist.xls', './dados/inpc.xls')
+    
+
+    def baixa_ipca(self):
+        '''
+        --> Baixa o arquivo com a série histórica do IPCA
+        '''
+        # Baixando arquivo da internet
+        with closing(request.urlopen(self._link_ipca)) as r:
+            with open('ipca_SerieHist.zip', 'wb') as f:
+                shutil.copyfileobj(r, f)
+        # Movendo e renomeando o arquivo zip
+        shutil.move('ipca_SerieHist.zip', 
+                    './dados/ipca.zip')
+        # Extraindo o arquivo xls e renomeando o arquivo
+        with ZipFile('./dados/ipca.zip', 'r') as zip_ref:
+            zip_ref.extractall('./dados')
+        if os.path.exists('.dados/ipca.xls'):
+            os.remove('./dados/ipca.xls')
+            os.rename('./dados/ipca_202104SerieHist.xls', './dados/ipca.xls')
+        else:
+            os.rename('./dados/ipca_202104SerieHist.xls', './dados/ipca.xls')
 
 
 class Investimentos:
