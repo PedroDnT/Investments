@@ -3,6 +3,8 @@ import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
+from captura_tratamento import Investimentos
+
 class SerieTemporal:
     '''
     --> Apresenta a série temporal dos investimentos analisados
@@ -34,21 +36,27 @@ class SerieTemporal:
         # Variáveis de definição do intervalo de tempo 
         periodo_investimento = self._investimento['data'].dt.year.between(self._periodo[0], self._periodo[1]) == True
         periodo_inflacao = self._indice_inflacao['data'].dt.year.between(self._periodo[0], self._periodo[1]) == True
-        
+        menor_serie = min(self._investimento.shape[0], self._indice_inflacao.shape[0])
+        # Dados das séries/ eixos
+        investimentos_eixo_x = self._investimento[periodo_investimento][self._eixo_x][:menor_serie]
+        investimentos_eixo_y = self._investimento[periodo_investimento][self._eixo_y][:menor_serie]
+        inflacao_eixo_x = self._indice_inflacao[periodo_inflacao][self._eixo_x][:menor_serie]
+        inflacao_eixo_y = self._indice_inflacao[periodo_inflacao][self._eixo_y][:menor_serie]
+
         fig = go.Figure()
-        fig.add_trace(go.Scatter(x=self._investimento[periodo_investimento][self._eixo_x], 
-                                y=self._investimento[periodo_investimento][self._eixo_y],
+        fig.add_trace(go.Scatter(x=investimentos_eixo_x, 
+                                y=investimentos_eixo_y,
                     mode='lines',
                     name=descricao_investimento))
-        fig.add_trace(go.Scatter(x=self._indice_inflacao[periodo_inflacao][self._eixo_x], 
-                                y=self._indice_inflacao[periodo_inflacao][self._eixo_y],
+        fig.add_trace(go.Scatter(x=inflacao_eixo_x, 
+                                y=inflacao_eixo_y,
                     mode='lines',
                     name=descricao_indice_inflacao,
                     line_color='rgb(255,215,0)'))
         fig.add_trace(go.Indicator(
                     mode = "number+delta",
-                    value = np.sum(self._investimento[periodo_investimento][self._eixo_y]).round(2),
-                    delta = {"reference": np.sum(self._indice_inflacao[periodo_inflacao][self._eixo_y]).round(2)},
+                    value = np.sum(investimentos_eixo_y).round(2),
+                    delta = {"reference": np.sum(inflacao_eixo_y).round(2)},
                     title = {"text": "Rendimento relativo a inflação"},
                     domain = {'y': [0, 1], 'x': [0.25, 0.75]}))
         fig.update_layout(title=titulo,
