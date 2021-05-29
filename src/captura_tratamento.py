@@ -40,6 +40,7 @@ class BaixaArquivos:
             os.rename('./dados/inpc_202104SerieHist.xls', './dados/inpc.xls')
         else:
             os.rename('./dados/inpc_202104SerieHist.xls', './dados/inpc.xls')
+        os.remove('./dados/inpc.zip')
     
 
     def baixa_ipca(self):
@@ -61,96 +62,61 @@ class BaixaArquivos:
             os.rename('./dados/ipca_202104SerieHist.xls', './dados/ipca.xls')
         else:
             os.rename('./dados/ipca_202104SerieHist.xls', './dados/ipca.xls')
+        os.remove('./dados/ipca.zip')
 
 
 class Investimentos:
     '''
     --> Captura e trata as informações referente a investimentos e indicadores
     '''
-    def __init__(self, historico_poupanca=None, historico_inpc=None, historico_ipca=None):
+    def __init__(self, dados_banco_central=None, dados_ibge=None):
         '''
-        :param histico_poupanca: Arquivo com o histórico dos pagamentos da poupança disponível em: 
-        https://www3.bcb.gov.br/sgspub/localizarseries/localizarSeries.do?method=prepararTelaLocalizarSeries
-        :param historico_inpc: Arquivo com o histórico do índice INPC disponível em: 
-        https://www.ibge.gov.br/estatisticas/economicas/precos-e-custos/9258-indice-nacional-de-precos-ao-consumidor.html?t=series-historicas
-        :param historico_ipca: Arquivo com o histórico do índice IPCA disponível em: 
-        https://www.ibge.gov.br/estatisticas/economicas/precos-e-custos/9258-indice-nacional-de-precos-ao-consumidor.html?t=series-historicas
+        :dados_banco_central: Arquivos baixados no Sistema Gerenciador de Séries Temporais do Banco Central
+        :param dados ibge: Arquivos baixados no site do IBGE 
         '''
-        self._historico_poupanca = historico_poupanca
-        self._historico_inpc = historico_inpc
-        self._historico_ipca = historico_ipca
+        self._dados_banco_central = dados_banco_central
+        self._dados_ibge = dados_ibge
         
 
-    def rendimentos_poupanca(self):
+    def tratamento_dados_bcb(self):
         '''
-        --> Faz a leitura e tratamento dos histórico da poupança disponível no Sistema Gerenciador de Séries Temporais do Banco 
-        Central
+        --> Faz a leitura e tratamento dos dados baixados no Sistema Gerenciador de Séries Temporais do Banco 
+        Central, os dados estão em periodicidade mensal.
         '''
-        poupanca = pd.read_csv(self._historico_poupanca, encoding='ISO-8859-1', sep=';', skipfooter=1, engine='python')
-        poupanca.columns = ['data', 'rentabilidade']
-        poupanca['rentabilidade'] = poupanca['rentabilidade'].str.replace(',', '.')
-        poupanca['data'] = pd.to_datetime(poupanca['data'])
-        poupanca['rentabilidade'] = poupanca['rentabilidade'].astype('float32')
-        return poupanca
+        dados_bcb = pd.read_csv(self._dados_banco_central, encoding='ISO-8859-1', sep=';', skipfooter=1, engine='python')
+        dados_bcb.columns = ['data', '%']
+        dados_bcb['%'] = dados_bcb['%'].str.replace(',', '.')
+        dados_bcb['data'] = pd.to_datetime(dados_bcb['data'])
+        dados_bcb['%'] = dados_bcb['%'].astype('float32')
+        return dados_bcb
     
 
-    def indice_inpc(self, renomeia_mes={'JAN': '1', 
-                                        'FEV': '2', 
-                                        'MAR': '3', 
-                                        'ABR': '4', 
-                                        'MAI': '5', 
-                                        'JUN': '6', 
-                                        'JUL': '7', 
-                                        'AGO': '8', 
-                                        'SET': '9',
-                                        'OUT': '10', 
-                                        'NOV': '11', 
-                                        'DEZ': '12'}):
+    def tratamento_dados_ibge(self, renomeia_mes={'JAN': '1', 
+                                                'FEV': '2', 
+                                                'MAR': '3', 
+                                                'ABR': '4', 
+                                                'MAI': '5', 
+                                                'JUN': '6', 
+                                                'JUL': '7', 
+                                                'AGO': '8', 
+                                                'SET': '9',
+                                                'OUT': '10', 
+                                                'NOV': '11', 
+                                                'DEZ': '12'}):
         '''
-        --> Faz a leitura e tratamento dos histórico do índice INPC apurado pelo IBGE
+        --> Faz a leitura e tratamento dos dados disponibilizados pelo IBGE, os dados estão em periodicidade mensal
         '''
-        inpc = pd.read_excel(self._historico_inpc, header=6, skiprows=1)
-        inpc = inpc.iloc[:, :4]
-        inpc.columns = ['ano', 'mes', 'n_indice', 'mes_%']
-        inpc['ano'] = inpc['ano'].fillna(method='ffill')
-        inpc.dropna(inplace=True)
-        inpc['mes'] = inpc['mes'].map(renomeia_mes)
-        inpc['ano'] = inpc['ano'].astype('str')
-        inpc['data'] = inpc['ano'] + '-' + inpc['mes']
-        inpc['data'] = pd.to_datetime(inpc['data'])
-        inpc = inpc[['data', 'mes_%']]
-        inpc = inpc[inpc['data'] > '2012-05-01']
-        inpc['mes_%'] = inpc['mes_%'].astype('float32')
-        inpc.reset_index(drop=True, inplace=True)
-        return inpc
-
-
-    def indice_ipca(self, renomeia_mes={'JAN': '1', 
-                                        'FEV': '2', 
-                                        'MAR': '3', 
-                                        'ABR': '4', 
-                                        'MAI': '5', 
-                                        'JUN': '6', 
-                                        'JUL': '7', 
-                                        'AGO': '8', 
-                                        'SET': '9',
-                                        'OUT': '10', 
-                                        'NOV': '11', 
-                                        'DEZ': '12'}):
-        '''
-        --> Faz a leitura e tratamento dos histórico do índice IPCA apurado pelo IBGE
-        '''
-        ipca = pd.read_excel(self._historico_ipca, header=6, skiprows=1)
-        ipca = ipca.iloc[:, :4]
-        ipca.columns = ['ano', 'mes', 'n_indice', 'mes_%']
-        ipca['ano'] = ipca['ano'].fillna(method='ffill')
-        ipca.dropna(inplace=True)
-        ipca['mes'] = ipca['mes'].map(renomeia_mes)
-        ipca['ano'] = ipca['ano'].astype('str')
-        ipca['data'] = ipca['ano'] + '-' + ipca['mes']
-        ipca['data'] = pd.to_datetime(ipca['data'])
-        ipca = ipca[['data', 'mes_%']]
-        ipca = ipca[ipca['data'] > '2012-05-01']
-        ipca['mes_%'] = ipca['mes_%'].astype('float32')
-        ipca.reset_index(drop=True, inplace=True)
-        return ipca
+        dados_ibge = pd.read_excel(self._dados_ibge, header=6, skiprows=1)
+        dados_ibge = dados_ibge.iloc[:, :4]
+        dados_ibge.columns = ['ano', 'mes', 'n_indice', '%']
+        dados_ibge['ano'] = dados_ibge['ano'].fillna(method='ffill')
+        dados_ibge.dropna(inplace=True)
+        dados_ibge['mes'] = dados_ibge['mes'].map(renomeia_mes)
+        dados_ibge['ano'] = dados_ibge['ano'].astype('str')
+        dados_ibge['data'] = dados_ibge['ano'] + '-' + dados_ibge['mes']
+        dados_ibge['data'] = pd.to_datetime(dados_ibge['data'])
+        dados_ibge = dados_ibge[['data', '%']]
+        dados_ibge = dados_ibge[dados_ibge['data'] > '2012-05-01']
+        dados_ibge['%'] = dados_ibge['%'].astype('float32')
+        dados_ibge.reset_index(drop=True, inplace=True)
+        return dados_ibge

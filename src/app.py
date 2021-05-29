@@ -3,16 +3,17 @@ from analise import SerieTemporal
 import streamlit as st
 
 
-investimentos = Investimentos(historico_poupanca='./dados/poupanca.csv', historico_inpc='./dados/inpc.xls', 
-                            historico_ipca='./dados/ipca.xls')
-poupanca_df = investimentos.rendimentos_poupanca()
-inpc_df = investimentos.indice_inpc()
-ipca_df = investimentos.indice_ipca()
+poupanca_df = Investimentos(dados_banco_central='./dados/poupanca.csv').tratamento_dados_bcb()
+cdi_df = Investimentos(dados_banco_central='./dados/cdi.csv').tratamento_dados_bcb()
+inpc_df = Investimentos(dados_ibge='./dados/inpc.xls').tratamento_dados_ibge()
+ipca_df = Investimentos(dados_ibge='./dados/ipca.xls').tratamento_dados_ibge()
+
 
 def main():
     # Seleção do período em anos
     anos = poupanca_df['data'].dt.year.unique().tolist()
     periodo = st.sidebar.slider('Selecione o período', min_value=min(anos), max_value=max(anos), value=(min(anos), max(anos)))
+
     # Seleção do índice de inflação
     indices_inflacao = ['IPCA', 'INPC']
     selecao_indice_inflacao = st.sidebar.selectbox('Índice de Inflação', indices_inflacao)
@@ -21,12 +22,20 @@ def main():
     elif selecao_indice_inflacao == 'INPC':
         inflacao_selecionada = inpc_df
 
+    # Seleção da opção de investimento
+    opcao_investimento = ['POUPANÇA', 'CDI']
+    selecao_opcao_investimento = st.sidebar.selectbox('Opção de Investimento', opcao_investimento)
+    if selecao_opcao_investimento == 'POUPANÇA':
+        investimento_selecionado = poupanca_df
+    elif selecao_opcao_investimento == 'CDI':
+        investimento_selecionado = cdi_df
+
+    # Visualização gráfica
     st.title('Investimentos')
-    analise_poupanca = SerieTemporal(investimento=poupanca_df, indice_inflacao=inflacao_selecionada, x_investimento='data', 
-                                    y_investimento='rentabilidade', x_indice_inflacao='data', y_indice_inflacao='mes_%', 
-                                    periodo=periodo)
-    analise_poupanca.serie_temporal(titulo='Rentabilidade Poupança', x_label='', y_label='%', 
-                                    descricao_indice_inflacao=selecao_indice_inflacao)
+    analise_investimento = SerieTemporal(investimento_selecionado, inflacao_selecionada, periodo=periodo)
+    analise_investimento.serie_temporal(titulo=f'Rentabilidade {selecao_opcao_investimento}', 
+                                    descricao_indice_inflacao=selecao_indice_inflacao,
+                                    descricao_investimento=selecao_opcao_investimento)
     if selecao_indice_inflacao == 'IPCA':
         st.text('IPCA: Abrange as famílias com rendimentos de 1 a 40 salários mínimos (IBGE)')
     elif selecao_indice_inflacao == 'INPC':
