@@ -36,12 +36,11 @@ class SerieTemporal:
         # Variáveis de definição do intervalo de tempo 
         periodo_investimento = self._investimento['data'].dt.year.between(self._periodo[0], self._periodo[1]) == True
         periodo_inflacao = self._indice_inflacao['data'].dt.year.between(self._periodo[0], self._periodo[1]) == True
-        menor_serie = min(self._investimento.shape[0], self._indice_inflacao.shape[0])
         # Dados das séries/ eixos
-        investimentos_eixo_x = self._investimento[periodo_investimento][self._eixo_x][:menor_serie]
-        investimentos_eixo_y = self._investimento[periodo_investimento][self._eixo_y][:menor_serie]
-        inflacao_eixo_x = self._indice_inflacao[periodo_inflacao][self._eixo_x][:menor_serie]
-        inflacao_eixo_y = self._indice_inflacao[periodo_inflacao][self._eixo_y][:menor_serie]
+        investimentos_eixo_x = self._investimento[periodo_investimento][self._eixo_x]
+        investimentos_eixo_y = self._investimento[periodo_investimento][self._eixo_y]
+        inflacao_eixo_x = self._indice_inflacao[periodo_inflacao][self._eixo_x]
+        inflacao_eixo_y = self._indice_inflacao[periodo_inflacao][self._eixo_y]
 
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=investimentos_eixo_x, 
