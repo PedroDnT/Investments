@@ -52,6 +52,7 @@ def main():
         st.text('POUPANÇA: Depósitos a partir de 04.05.2012 - Rentabilidade no 1º dia do mês (BCB-Demab)')
     elif selecao_opcao_investimento == 'CDI':
         st.text('CDI: Taxa de juros acumulada no mês (BCB-Demab)')
+    st.markdown('Repositório no [GitHub](https://github.com/MarcosRMG/Investimentos)')
     
 if __name__ == '__main__':
     main()
