@@ -1,81 +1,99 @@
 import pandas as pd
-import shutil
-import urllib.request as request
-from contextlib import closing
-from zipfile import ZipFile
-import os
+from datetime import date
+import requests
+import json
 
 
 class BaixaArquivos:
     '''
     --> Baixa os arquivos para tratamento e análise
     '''
-    def __init__(self, 
-                link_inpc='https://ftp.ibge.gov.br/Precos_Indices_de_Precos_ao_Consumidor/INPC/Serie_Historica/inpc_SerieHist.zip',
-                link_ipca='https://ftp.ibge.gov.br/Precos_Indices_de_Precos_ao_Consumidor/IPCA/Serie_Historica/ipca_SerieHist.zip'):
+    def __init__(self,
+                indicadores_ibge=['https://servicodados.ibge.gov.br/api/v3/agregados/1736/periodos/-77/variaveis/44?localidades=N1[all]',
+                                'https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-77/variaveis/63?localidades=N1[all]'], 
+                descricao_indicadores_ibge=['inpc', 'ipca'], data_inicial_bcb='01/01/2015', 
+                data_final_bcb=date.today().strftime('%d/%m/%Y'), codigos_series_bcb=['196', '4391', '4390'], 
+                indicadores_bcb=['poupanca', 'cdi', 'selic']):
         '''
-        :link_inpc: Link para baixar o arquivo com a série historica do INPC
-        :link_ipca: Link para baixar o arquivo com a série historica do IPCA
+        :param indicadores_ibge: 
+        1º: 1736-INPC-Série histórica com número-índice, variação mensal e variações acumuladas em 3 meses, em 6 meses, 
+        no ano e em 12 meses (a partir de abril/1979),
+        2º: 1737-IPCA-Série histórica com número-índice, variação mensal e variações acumuladas em 3 meses, em 6 meses, 
+        no ano e em 12 meses (a partir de dezembro/1979)
+        :param descricao_indicadores_ibge: Descrição dos indicadores que estão sendo baixados no site no IBGE
+        :param data_inicial_bcb: Data inicial da série
+        :param data_final_bcb: Data final da série
+        :param codigos_series_bcb: Lista com os códigos das séries que será baixada via api do Sistema Gerenciador de Séries Temporais do Banco Central, 
+        documentação disponível em: https://dadosabertos.bcb.gov.br/dataset/20542-saldo-da-carteira-de-credito-com-recursos-livres---total/resource/6e2b0c97-afab-4790-b8aa-b9542923cf88
+        :param indicadore_bcb: Lista com a descrição dos indicadores que estão sendo baixados 
         '''
-        self._link_inpc = link_inpc
-        self._link_ipca = link_ipca
-
-    
-    def baixa_inpc(self):
-        '''
-        --> Baixa o arquivo com a série histórica do INPC
-        '''
-        # Baixando arquivo da internet
-        with closing(request.urlopen(self._link_inpc)) as r:
-            with open('inpc_SerieHist.zip', 'wb') as f:
-                shutil.copyfileobj(r, f)
-        # Movendo e renomeando o arquivo zip
-        shutil.move('inpc_SerieHist.zip', 
-                    './dados/inpc.zip')
-        # Extraindo o arquivo xls e renomeando o arquivo
-        with ZipFile('./dados/inpc.zip', 'r') as zip_ref:
-            zip_ref.extractall('./dados')
-        if os.path.exists('.dados/inpc.xls'):
-            os.remove('./dados/inpc.xls')
-            os.rename('./dados/inpc_202104SerieHist.xls', './dados/inpc.xls')
-        else:
-            os.rename('./dados/inpc_202104SerieHist.xls', './dados/inpc.xls')
-        os.remove('./dados/inpc.zip')
-    
-
-    def baixa_ipca(self):
-        '''
-        --> Baixa o arquivo com a série histórica do IPCA
-        '''
-        # Baixando arquivo da internet
-        with closing(request.urlopen(self._link_ipca)) as r:
-            with open('ipca_SerieHist.zip', 'wb') as f:
-                shutil.copyfileobj(r, f)
-        # Movendo e renomeando o arquivo zip
-        shutil.move('ipca_SerieHist.zip', 
-                    './dados/ipca.zip')
-        # Extraindo o arquivo xls e renomeando o arquivo
-        with ZipFile('./dados/ipca.zip', 'r') as zip_ref:
-            zip_ref.extractall('./dados')
-        if os.path.exists('.dados/ipca.xls'):
-            os.remove('./dados/ipca.xls')
-            os.rename('./dados/ipca_202104SerieHist.xls', './dados/ipca.xls')
-        else:
-            os.rename('./dados/ipca_202104SerieHist.xls', './dados/ipca.xls')
-        os.remove('./dados/ipca.zip')
+        self._indicadores_ibge = indicadores_ibge
+        self._descricao_indicadores_ibge = descricao_indicadores_ibge
+        self._indicadores_ibge = indicadores_ibge
+        self._data_inicial_bcb = data_inicial_bcb
+        self._data_final_bcb = data_final_bcb
+        self._codigos_series_bcb = codigos_series_bcb
+        self._indicadores_bcb = indicadores_bcb
 
 
-class Investimentos:
+    def series_banco_central(self):
+        '''
+        --> Baixa as séries temporais via api do Banco Central
+        '''
+        for indice in range(len(self._codigos_series_bcb)):
+            api_bcb = 'http://api.bcb.gov.br/dados/serie/bcdata.sgs.' + self._codigos_series_bcb[indice] + '/dados?formato=json&dataInicial=' + self._data_inicial_bcb + '&dataFinal=' + self._data_final_bcb
+            dados_json = requests.get(api_bcb)
+            dados_dic = json.loads(dados_json.content)
+            data = list()
+            valor = list()
+            for i in dados_dic:
+                data.append(i['data'])
+                valor.append(i['valor'])
+            dados_df = pd.DataFrame({'data': data, '%': valor})
+            dados_df.to_csv(f'./dados/{self._indicadores_bcb[indice]}.csv', index=False)
+
+
+    def series_ibge(self):
+        '''
+        --> Baixa as séreis temporais via api do IBGE
+        '''
+        for indice in range(len(self._indicadores_ibge)):
+            dados = requests.get(self._indicadores_ibge[indice])
+            dados = json.loads(dados.content)
+            dados = dados[0]['resultados'][0]['series'][0]['serie']
+            data = list()
+            taxa = list()
+            for chave, valor in dados.items():
+                data.append(chave)
+                taxa.append(valor)
+            dados_df = pd.DataFrame({'data': data, '%': taxa})
+            dados_df.to_csv(f'./dados/{self._descricao_indicadores_ibge[indice]}.csv', index=False)
+
+
+class Indicadores:
     '''
-    --> Captura e trata as informações referente a investimentos e indicadores
+    --> Captura e trata as informações referente a investimentos e indicadores e agrupa as informações em um DataFrame Pandas
     '''
-    def __init__(self, dados_banco_central=None, dados_ibge=None):
+    def __init__(self, indicadores_bcb=['Poupança', 'CDI', 'Selic'], indicadores_ibge=['INPC', 'IPCA'],
+                data_frame_banco_central=pd.DataFrame(), arquivos_banco_central=['./dados/poupanca.csv', './dados/cdi.csv',
+                                                                                './dados/selic.csv'], 
+                data_frame_ibge=pd.DataFrame(), 
+                arquivos_ibge=['./dados/inpc.csv', './dados/ipca.csv']):
         '''
-        :dados_banco_central: Arquivos baixados no Sistema Gerenciador de Séries Temporais do Banco Central
-        :param dados ibge: Arquivos baixados no site do IBGE 
+        :param indicadores_bcb: Indicadores baixados no site do Banco Central
+        :param indicadores_ibge: Indicadores baixados no site do IBGE
+        :param data_frame_banco_central: DataFrame Pandas dos arquivos baixados no Sistema Gerenciador de Séries Temporais do Banco 
+        Central
+        :param arquivos_banco_central: Arquivos baixados do Sistema Gerenciador de Séries Temporais do Banco Central
+        :param data_frame_ibge: DataFrame Pandas dos arquivos baixados no  site do IBGE
+        :param arquivos_ibge: Arquivos baixados no site do IBGE
         '''
-        self._dados_banco_central = dados_banco_central
-        self._dados_ibge = dados_ibge
+        self._indicadores_bcb = indicadores_bcb
+        self._indicadores_ibge = indicadores_ibge
+        self._data_frame_banco_central = data_frame_banco_central
+        self._arquivos_banco_central = arquivos_banco_central
+        self._data_frame_ibge = data_frame_ibge
+        self._arquivos_ibge = arquivos_ibge
         
 
     def tratamento_dados_bcb(self):
@@ -83,40 +101,38 @@ class Investimentos:
         --> Faz a leitura e tratamento dos dados baixados no Sistema Gerenciador de Séries Temporais do Banco 
         Central, os dados estão em periodicidade mensal.
         '''
-        dados_bcb = pd.read_csv(self._dados_banco_central, encoding='ISO-8859-1', sep=';', skipfooter=1, engine='python')
-        dados_bcb.columns = ['data', '%']
-        dados_bcb['%'] = dados_bcb['%'].str.replace(',', '.')
-        dados_bcb['data'] = pd.to_datetime(dados_bcb['data'])
-        dados_bcb['%'] = dados_bcb['%'].astype('float32')
-        return dados_bcb
+        for indice in range(len(self._arquivos_banco_central)):
+            dados = pd.read_csv(self._arquivos_banco_central[indice])
+            dados.columns = ['data', self._indicadores_bcb[indice]]
+            dados['data'] = pd.to_datetime(dados['data'], format='%d/%m/%Y', dayfirst=True)
+            if self._data_frame_banco_central.empty:
+                self._data_frame_banco_central = pd.concat([self._data_frame_banco_central, dados], axis=1)
+            else:
+                self._data_frame_banco_central = self._data_frame_banco_central.merge(dados, on='data')
     
 
-    def tratamento_dados_ibge(self, renomeia_mes={'JAN': '1', 
-                                                'FEV': '2', 
-                                                'MAR': '3', 
-                                                'ABR': '4', 
-                                                'MAI': '5', 
-                                                'JUN': '6', 
-                                                'JUL': '7', 
-                                                'AGO': '8', 
-                                                'SET': '9',
-                                                'OUT': '10', 
-                                                'NOV': '11', 
-                                                'DEZ': '12'}):
+    def tratamento_dados_ibge(self):
         '''
         --> Faz a leitura e tratamento dos dados disponibilizados pelo IBGE, os dados estão em periodicidade mensal
         '''
-        dados_ibge = pd.read_excel(self._dados_ibge, header=6, skiprows=1)
-        dados_ibge = dados_ibge.iloc[:, :4]
-        dados_ibge.columns = ['ano', 'mes', 'n_indice', '%']
-        dados_ibge['ano'] = dados_ibge['ano'].fillna(method='ffill')
-        dados_ibge.dropna(inplace=True)
-        dados_ibge['mes'] = dados_ibge['mes'].map(renomeia_mes)
-        dados_ibge['ano'] = dados_ibge['ano'].astype('str')
-        dados_ibge['data'] = dados_ibge['ano'] + '-' + dados_ibge['mes']
-        dados_ibge['data'] = pd.to_datetime(dados_ibge['data'])
-        dados_ibge = dados_ibge[['data', '%']]
-        dados_ibge = dados_ibge[dados_ibge['data'] > '2012-05-01']
-        dados_ibge['%'] = dados_ibge['%'].astype('float32')
-        dados_ibge.reset_index(drop=True, inplace=True)
-        return dados_ibge
+        for indice in range(len(self._arquivos_ibge)):
+            dados = pd.read_csv(self._arquivos_ibge[indice])
+            dados.columns = ['data', self._indicadores_ibge[indice]]
+            dados['data'] = dados['data'].astype('str')
+            dados['ano'] = dados['data'].str[:4]
+            dados['mes'] = dados['data'].str[4:]
+            dados['data'] = '01' + '/' + dados['mes'] + '/' + dados['ano']
+            dados.drop(['mes', 'ano'], axis=1, inplace=True)
+            dados['data'] = pd.to_datetime(dados['data'], format='%d/%m/%Y', dayfirst=True)
+            if self._data_frame_ibge.empty:
+                self._data_frame_ibge = pd.concat([self._data_frame_ibge, dados], axis=1)
+            else:
+                self._data_frame_ibge = self._data_frame_ibge.merge(dados, on='data')
+
+
+    def data_frame_investimentos(self):
+        '''
+        --> Reune todos os arquivos em um DataFrame pandas
+        '''
+        data_frame = pd.merge(self._data_frame_banco_central, self._data_frame_ibge, on='data')
+        return data_frame
