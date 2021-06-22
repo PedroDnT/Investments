@@ -1,3 +1,4 @@
+'''
 from captura_tratamento import Indicadores
 
 dados = Indicadores(arquivos_banco_central=['../dados/poupanca.csv', '../dados/cdi.csv', '../dados/selic.csv'],
@@ -5,3 +6,8 @@ dados = Indicadores(arquivos_banco_central=['../dados/poupanca.csv', '../dados/c
 dados.tratamento_dados_bcb()
 dados.tratamento_dados_ibge()
 #dados = dados.data_frame_investimentos()
+'''
+from captura_tratamento import BaixaArquivos
+
+dados = BaixaArquivos()
+dados.series_alpha_vantage()

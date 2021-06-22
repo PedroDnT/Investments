@@ -13,7 +13,10 @@ class BaixaArquivos:
                                 'https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-77/variaveis/63?localidades=N1[all]'], 
                 descricao_indicadores_ibge=['inpc', 'ipca'], data_inicial_bcb='01/01/2015', 
                 data_final_bcb=date.today().strftime('%d/%m/%Y'), codigos_series_bcb=['196', '4391', '4390'], 
-                indicadores_bcb=['poupanca', 'cdi', 'selic']):
+                indicadores_bcb=['poupanca', 'cdi', 'selic'],
+                api_alpha_vantage_1='https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=full&symbol=',
+                api_alpha_vantage_2='&apikey=M5QSLH6PMM9ZZXDD',
+                api_alpha_vantage_co=['IBM']):
         '''
         :param indicadores_ibge: 
         1º: 1736-INPC-Série histórica com número-índice, variação mensal e variações acumuladas em 3 meses, em 6 meses, 
@@ -26,6 +29,9 @@ class BaixaArquivos:
         :param codigos_series_bcb: Lista com os códigos das séries que será baixada via api do Sistema Gerenciador de Séries Temporais do Banco Central, 
         documentação disponível em: https://dadosabertos.bcb.gov.br/dataset/20542-saldo-da-carteira-de-credito-com-recursos-livres---total/resource/6e2b0c97-afab-4790-b8aa-b9542923cf88
         :param indicadore_bcb: Lista com a descrição dos indicadores que estão sendo baixados 
+        :param api_alpha_vantage_1: Primeira parte da URL da API do site Alpha Vantage
+        :param api_alpha_vantage_2: Segunda parte da URL da API do site Alpha Vantage
+        :param api_alpha_vantage_co: Descrição da empresa para captura dos dados
         '''
         self._indicadores_ibge = indicadores_ibge
         self._descricao_indicadores_ibge = descricao_indicadores_ibge
@@ -34,6 +40,20 @@ class BaixaArquivos:
         self._data_final_bcb = data_final_bcb
         self._codigos_series_bcb = codigos_series_bcb
         self._indicadores_bcb = indicadores_bcb
+        self._api_alpha_vantage_1 = api_alpha_vantage_1
+        self._api_alpha_vantage_2 = api_alpha_vantage_2
+        self._api_alpha_vantage_co = api_alpha_vantage_co
+
+
+    def captura_json(self, url):
+        '''
+        --> Captura as infomações da URL em formato JSON
+
+        :param url: URL do serviço da API de dados
+        '''
+        dados_json = requests.get(url)
+        dados_dic = json.loads(dados_json.content)
+        return dados_dic
 
 
     def series_banco_central(self):
@@ -68,6 +88,21 @@ class BaixaArquivos:
                 taxa.append(valor)
             dados_df = pd.DataFrame({'data': data, '%': taxa})
             dados_df.to_csv(f'./dados/{self._descricao_indicadores_ibge[indice]}.csv', index=False)
+
+
+    def series_alpha_vantage(self):
+        '''
+        Baixa as séries de fechamento de ações diárias por meio da API do site https://www.alphavantage.co/
+        '''
+        for empresa in self._api_alpha_vantage_co:
+            dados = self.captura_json(self._api_alpha_vantage_1 + empresa + self._api_alpha_vantage_2)
+            data = list()
+            fechamento = list()
+            for i in dados['Time Series (Daily)'].keys():
+                data.append(i)
+                fechamento.append(dados['Time Series (Daily)'][i]['4. close'])
+            data_frame = pd.DataFrame({'data': data, empresa: fechamento})
+            data_frame.to_csv(f'./dados/{empresa.lower()}.csv', index=False)
 
 
 class Indicadores:
@@ -130,7 +165,7 @@ class Indicadores:
                 self._data_frame_ibge = self._data_frame_ibge.merge(dados, on='data')
 
 
-    def data_frame_investimentos(self):
+    def data_frame_investimentos_mensal(self):
         '''
         --> Reune todos os arquivos em um DataFrame pandas
         '''
