@@ -8,7 +8,7 @@ import numpy as np
 dados = Indicadores()
 dados.tratamento_dados_bcb()
 dados.tratamento_dados_ibge()
-dados = dados.data_frame_investimentos()
+dados = dados.data_frame_investimentos_mensal()
 # Descrição dos dados
 descricao = pd.DataFrame({'Poupança': ['POUPANÇA: Rentabilidade no 1º dia do mês (BCB-Demab)'],
                             'CDI': ['CDI: Taxa de juros acumulada no mês (BCB-Demab)'],

@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import date
 import requests
 import json
+import pandas_datareader.data as web
 
 
 class BaixaArquivos:
@@ -9,10 +10,13 @@ class BaixaArquivos:
     --> Baixa os arquivos para tratamento e análise
     '''
     def __init__(self,
+                data_inicial_yahoo='2015-01-01', data_final_yahoo=date.today(), data_inicial_bcb='01/01/2015', 
+                data_final_bcb=date.today().strftime('%d/%m/%Y'), site_dados='yahoo', empresas_yahoo=['PETR4.SA', 'BBAS3.SA', 
+                                                                                                    'MGLU3.SA'],
                 indicadores_ibge=['https://servicodados.ibge.gov.br/api/v3/agregados/1736/periodos/-77/variaveis/44?localidades=N1[all]',
                                 'https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-77/variaveis/63?localidades=N1[all]'], 
-                descricao_indicadores_ibge=['inpc', 'ipca'], data_inicial_bcb='01/01/2015', 
-                data_final_bcb=date.today().strftime('%d/%m/%Y'), codigos_series_bcb=['196', '4391', '4390'], 
+                descricao_indicadores_ibge=['inpc', 'ipca'], 
+                codigos_series_bcb=['196', '4391', '4390'], 
                 indicadores_bcb=['poupanca', 'cdi', 'selic'],
                 api_alpha_vantage_1='https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=full&symbol=',
                 api_alpha_vantage_2='&apikey=M5QSLH6PMM9ZZXDD',
@@ -33,6 +37,9 @@ class BaixaArquivos:
         :param api_alpha_vantage_2: Segunda parte da URL da API do site Alpha Vantage
         :param api_alpha_vantage_co: Descrição da empresa para captura dos dados
         '''
+        self._data_inicial_yahoo = data_inicial_yahoo
+        self._data_final_yahoo = data_final_yahoo
+        self._site_dados = site_dados
         self._indicadores_ibge = indicadores_ibge
         self._descricao_indicadores_ibge = descricao_indicadores_ibge
         self._indicadores_ibge = indicadores_ibge
@@ -103,6 +110,17 @@ class BaixaArquivos:
                 fechamento.append(dados['Time Series (Daily)'][i]['4. close'])
             data_frame = pd.DataFrame({'data': data, empresa: fechamento})
             data_frame.to_csv(f'./dados/{empresa.lower()}.csv', index=False)
+
+
+def yahoo_fiance(data_inicial='2015-01-01', data_final=date.today(), empresas=['PETR4.SA', 'BBAS3.SA', 'MGLU3.SA'],
+                descricao_empresas=['Petrobras', 'Banco do Brasil', 'Magazine Luiza']):
+    '''
+    Captura os dados no site do Yahoo Finance
+    '''
+    for indice in range(len(empresas)):
+        dados = web.DataReader(empresas[indice], 'yahoo', data_inicial, data_final)
+        dados.columns = ['alta', 'baixa', 'abertura', 'fechamento', 'volume', 'fechamento_ajustado']
+        dados.to_csv(f'./dados/{descricao_empresas[indice].lower()}.csv')
 
 
 class Indicadores:
