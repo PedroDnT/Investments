@@ -2,6 +2,7 @@
 install.packages('corrplot')
 # Pacotes adicionais
 library(rvest)
+library(plyr)
 library(dplyr)
 library(xts)
 library(zoo)
@@ -13,12 +14,11 @@ library(GetDFPData2)
 library(ggplot2)
 library(ggthemes)
 library(reshape2)
-library(plyr)
 library(corrplot)
 
 # Parâmtros para captura das ações nacionais
 # Dia inicial
-di = '2016-01-01' 
+di = '2021-01-01' 
 # Dia final
 df = Sys.Date()
 # Indicador, ticket
@@ -58,7 +58,7 @@ dados_ibov = dados_ibov$df.tickers
 # com uma coluna para cada ação e o respectivo preço ajustado
 # Gerando um DataFrame para cada ação
 dados_ibov2 = dlply(dados_ibov, .(ticker), function(x) {rownames(x) = x$row; 
-x$row = NULL;x})
+                    x$row = NULL;x})
 
 # Gerando um único DataFrame com a coluna de data e uma coluna para cada ação
 # acao: É igual ao primeiro DataFrame em dados_ibov2, e a sétima e sexta coluna
