@@ -1,5 +1,5 @@
 # Instalando pacotes
-install.packages('corrplot')
+#install.packages('corrplot')
 # Pacotes adicionais
 library(rvest)
 library(plyr)
@@ -18,7 +18,7 @@ library(corrplot)
 
 # Parâmtros para captura das ações nacionais
 # Dia inicial
-di = '2021-01-01' 
+di = '2021-07-01' 
 # Dia final
 df = Sys.Date()
 # Indicador, ticket

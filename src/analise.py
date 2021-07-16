@@ -4,13 +4,13 @@ import plotly.graph_objects as go
 import numpy as np
 
 
-class AnalisaSerie:
+class AnalisaSerieMensal:
     '''
     --> Analisa a série temporal do(s) indicador(s) selecioando(s)
     '''
     def __init__(self, dados=None, periodo=None, eixo_x='data', x_label='', y_label='%'):
         '''
-        :param dados: DataFrame Pandas com as séries temporais
+        :param dados: DataFrame Pandas com as séries temporais com indicadores mensais
         :param periodo: Período selecionado para análise
         :param eixo_x: Eixo x da série
         :param x_label: Label x da série
@@ -62,7 +62,7 @@ class AnalisaSerie:
         st.plotly_chart(fig)
 
 
-    def visualiza_indicador(self, dados=None, eixo_y=None, descricao_indicador=None):
+    def visualiza_indicador(self, eixo_y=None, descricao_indicador=None):
         '''
         --> Visualiza o indicador selecionado
 
@@ -79,6 +79,48 @@ class AnalisaSerie:
                     y=eixo_y,
                     mode='lines',
                     name=descricao_indicador))
+        fig.update_layout(title=descricao_indicador,
+                        xaxis_title=self._x_label,
+                        yaxis_title=self._y_label)
+        st.plotly_chart(fig)
+
+    
+class AnalisaSerieDiaria:
+    '''
+    --> Analisa a série temporal do(s) indicador(s) selecioando(s)
+    '''
+    def __init__(self, dados=None, data_inicial=None, data_final=None, eixo_x='data', x_label='', y_label='%'):
+        '''
+        :param dados: DataFrame Pandas com as séries temporais com indicadores diários
+        :param data_inicial: Data inicial da série
+        :param data_final: Data final da série
+        :param eixo_x: Eixo x da série
+        :param x_label: Label x da série
+        :param y_label: Label y da série
+        '''
+        self._dados = dados
+        self._data_inicial = data_inicial
+        self._data_final = data_final
+        self._eixo_x = eixo_x
+        self._x_label = x_label
+        self._y_label = y_label
+
+
+    def visualiza_indicador_diario(self, eixo_y=None, descricao_indicador=None):
+        '''
+        --> Visualiza o indicador selecionado
+
+        :param indicador: Indicador selecionado
+        :param descricao_indicador: Descrição do indicador selecionado
+        '''
+        dados = self._dados.loc[self._data_inicial:self._data_final]
+        # Dados das séries/ eixos
+        eixo_x = dados.index
+        eixo_y = dados[eixo_y]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=eixo_x,
+                    y=eixo_y,
+                    mode='lines'))
         fig.update_layout(title=descricao_indicador,
                         xaxis_title=self._x_label,
                         yaxis_title=self._y_label)

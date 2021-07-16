@@ -1,5 +1,5 @@
 from captura_tratamento import Indicadores
-from analise import AnalisaSerie
+from analise import AnalisaSerieMensal, AnalisaSerieDiaria
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -9,6 +9,9 @@ dados = Indicadores()
 dados.tratamento_dados_bcb()
 dados.tratamento_dados_ibge()
 dados = dados.data_frame_investimentos_mensal()
+ibov = pd.read_csv('./dados/ibov.csv')
+ibov['data'] = pd.to_datetime(ibov['data'])
+ibov.set_index('data', inplace=True)
 # Descrição dos dados
 descricao = pd.DataFrame({'Poupança': ['POUPANÇA: Rentabilidade no 1º dia do mês (BCB-Demab)'],
                             'CDI': ['CDI: Taxa de juros acumulada no mês (BCB-Demab)'],
@@ -17,41 +20,28 @@ descricao = pd.DataFrame({'Poupança': ['POUPANÇA: Rentabilidade no 1º dia do 
                             'Selic': ['Selic: Taxa de juros acumulada no mês']})
 
 def main():
-    # Seleção do período em anos
-    anos = dados['data'].dt.year.unique().tolist()
-    periodo = st.sidebar.slider('Selecione o período', min_value=min(anos), max_value=max(anos), value=(min(anos), max(anos)))
-    # Classe para análise
-    analisa = AnalisaSerie(dados, periodo)
-    # Indicadores
-    investimentos = ['Poupança', 'CDI']
-    indexadores = ['IPCA', 'INPC', 'Selic']
-    #indicadores = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-    indicadores = dados.columns[1:]
+    acoes_ibov = ibov.columns
+    indexadores = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
     # Visualização gráfica
-    st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>V.1</h1>", 
+    st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Versão 1.1</h1>", 
                 unsafe_allow_html=True)
     st.title('Análise de Investimentos')
-    acao = st.sidebar.selectbox('Visualizar', ['Indicador', 'Comparação'])
-    if acao == 'Indicador':
-        indicador = st.sidebar.selectbox('Indicador', indicadores)
-        analisa.visualiza_indicador(dados, eixo_y=indicador, descricao_indicador=indicador)
-        st.text(descricao[indicador][0])
-    elif acao == 'Comparação':
-        opcao_comparacao = st.sidebar.selectbox('Comparar com', ['Investimento', 'Indexador'])
-        if opcao_comparacao == 'Investimento':    
-            # Seleção da opção de investimento
-            investimento = st.sidebar.selectbox('Avaliar', investimentos)
-            comparacao = st.sidebar.selectbox('Comparar', np.sort(investimentos))
-            analisa.compara_indicador(investimento, comparacao, investimento, comparacao, f'{investimento} x {comparacao}') 
-            st.text(descricao[investimento][0])
-            st.text(descricao[comparacao][0])       
-        elif opcao_comparacao == 'Indexador':
-            investimento = st.sidebar.selectbox('Investimento', investimentos)
-            indexador = st.sidebar.selectbox('Indexador', indexadores)
-            analisa.compara_indicador(investimento, indexador, investimento, indexador, 
-                                    f'{investimento} x {indexador}')
-            st.text(descricao[investimento][0])
-            st.text(descricao[indexador][0])
+    indicadores = ['Indexadores', 'Ações']
+    indicador = st.sidebar.selectbox('Indicador', indicadores)
+    if indicador == 'Indexadores':
+        anos = dados['data'].dt.year.unique().tolist()
+        indexador = st.sidebar.selectbox('Indexador', indexadores)
+        periodo = st.sidebar.slider('Selecione o período', min_value=min(anos), max_value=max(anos), value=(min(anos), max(anos)))
+        analisa = AnalisaSerieMensal(dados=dados, periodo=periodo)
+        analisa.visualiza_indicador(eixo_y=indexador, descricao_indicador=indexador)
+    elif indicador == 'Ações':
+        data_inicial = st.sidebar.date_input('Data Inicial', ibov.index.min())
+        data_final = st.sidebar.date_input('Data Final', ibov.index.max())
+        analise_diaria = AnalisaSerieDiaria(ibov, data_inicial, data_final)
+        visualizar_acao = st.sidebar.selectbox('Ação', acoes_ibov)
+        analise_diaria.visualiza_indicador_diario(eixo_y=visualizar_acao, descricao_indicador=visualizar_acao)
+    if indicador == 'Indexadores':
+        st.text(descricao[indexador][0])
     st.markdown('Repositório no [GitHub](https://github.com/MarcosRMG/Investimentos)')
     
 if __name__ == '__main__':
