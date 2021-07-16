@@ -30,8 +30,8 @@ def main():
     indicador = st.sidebar.selectbox('Indicador', indicadores)
     if indicador == 'Indexadores':
         anos = dados['data'].dt.year.unique().tolist()
-        indexador = st.sidebar.selectbox('Indexador', indexadores)
         periodo = st.sidebar.slider('Selecione o período', min_value=min(anos), max_value=max(anos), value=(min(anos), max(anos)))
+        indexador = st.sidebar.selectbox('Indexador', indexadores)
         analisa = AnalisaSerieMensal(dados=dados, periodo=periodo)
         analisa.visualiza_indicador(eixo_y=indexador, descricao_indicador=indexador)
     elif indicador == 'Ações':
