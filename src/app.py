@@ -1,48 +1,48 @@
-from captura_tratamento import Indicadores
-from analise import AnalisaSerieMensal, AnalisaSerieDiaria
+from catch_clean import BrazilianIndicators
+from analysis import AnalysisSeriesMontly, AnalysisSerieDaily
 import streamlit as st
 import pandas as pd
 import numpy as np
 
 
-dados = Indicadores()
-dados.tratamento_dados_bcb()
-dados.tratamento_dados_ibge()
-dados = dados.data_frame_investimentos_mensal()
-ibov = pd.read_csv('./dados/ibov.csv')
-ibov['data'] = pd.to_datetime(ibov['data'])
-ibov.set_index('data', inplace=True)
-# Descrição dos dados
-descricao = pd.DataFrame({'Poupança': ['POUPANÇA: Rentabilidade no 1º dia do mês (BCB-Demab)'],
-                            'CDI': ['CDI: Taxa de juros acumulada no mês (BCB-Demab)'],
-                            'IPCA': ['IPCA: Abrange as famílias com rendimentos de 1 a 40 salários mínimos (IBGE)'],
-                            'INPC': ['INPC: Abrange as famílias com rendimentos de 1 a 5 salários mínimos (IBGE)'],
-                            'Selic': ['Selic: Taxa de juros acumulada no mês']})
+data = BrazilianIndicators()
+data.clean_data_bcb()
+data.clean_data_ibge()
+data = data.data_frame_indicators()
+ibov = pd.read_csv('./data/ibov.csv')
+ibov['date'] = pd.to_datetime(ibov['date'])
+ibov.set_index('date', inplace=True)
+# Indexers description
+description = pd.DataFrame({'Savings': ['SAVINGS: Profitability on the 1st day of the month (BCB-Demab)'],
+                            'CDI': ['CDI: Monthly Accumulated Interest Rate (BCB-Demab)'],
+                            'IPCA': ['IPCA: Covers families with income from 1 to 40 minimum wages (IBGE)'],
+                            'INPC': ['INPC: Covers families with income from 1 a 5 minimum wages (IBGE)'],
+                            'Selic': ['Selic: Monthly Accumulated Interest Rate (BCB-Demab)']})
 
 def main():
-    acoes_ibov = ibov.columns
-    indexadores = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
+    stocks_ibov = ibov.columns
+    indexers = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
     # Visualização gráfica
-    st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Versão 1.1</h1>", 
+    st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.1</h1>", 
                 unsafe_allow_html=True)
-    st.title('Análise de Investimentos')
-    indicadores = ['Indexadores', 'Ações']
-    indicador = st.sidebar.selectbox('Indicador', indicadores)
-    if indicador == 'Indexadores':
-        anos = dados['data'].dt.year.unique().tolist()
-        periodo = st.sidebar.slider('Selecione o período', min_value=min(anos), max_value=max(anos), value=(min(anos), max(anos)))
-        indexador = st.sidebar.selectbox('Indexador', indexadores)
-        analisa = AnalisaSerieMensal(dados=dados, periodo=periodo)
-        analisa.visualiza_indicador(eixo_y=indexador, descricao_indicador=indexador)
-    elif indicador == 'Ações':
-        data_inicial = st.sidebar.date_input('Data Inicial', ibov.index.min())
-        data_final = st.sidebar.date_input('Data Final', ibov.index.max())
-        analise_diaria = AnalisaSerieDiaria(ibov, data_inicial, data_final)
-        visualizar_acao = st.sidebar.selectbox('Ação', acoes_ibov)
-        analise_diaria.visualiza_indicador_diario(eixo_y=visualizar_acao, descricao_indicador=visualizar_acao)
-    if indicador == 'Indexadores':
-        st.text(descricao[indexador][0])
-    st.markdown('Repositório no [GitHub](https://github.com/MarcosRMG/Investimentos)')
+    st.title('Brazilian Investiments Analysis (R$)')
+    indicators = ['Indexers', 'Stocks']
+    indicator = st.sidebar.selectbox('Indicator', indicators)
+    if indicator == 'Indexers':
+        anos = data['date'].dt.year.unique().tolist()
+        period = st.sidebar.slider('Select the period', min_value=min(anos), max_value=max(anos), value=(min(anos), max(anos)))
+        indexer = st.sidebar.selectbox('Indexer', indexers)
+        analyze = AnalysisSeriesMontly(data, period)
+        analyze.visualize_indicator(axis_y=indexer, description_indicator=indexer)
+    elif indicator == 'Stocks':
+        initial_date = st.sidebar.date_input('Initial Date', ibov.index.min())
+        final_date = st.sidebar.date_input('Final Date', ibov.index.max())
+        analysis_daily = AnalysisSerieDaily(ibov, initial_date, final_date)
+        visualize_stocks = st.sidebar.selectbox('Stocks', stocks_ibov)
+        analysis_daily.visualize_indicator_daily(visualize_stocks, visualize_stocks)
+    if indicator == 'Indexers':
+        st.text(description[indexer][0])
+    st.markdown('[GitHub repository](https://github.com/MarcosRMG/Investimentos)')
     
 if __name__ == '__main__':
     main()
