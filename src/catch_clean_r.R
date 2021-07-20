@@ -1,4 +1,4 @@
-setwd('/home/marcos/Documents/Projetos/Investimentos/src')
+setwd('/home/marcos/Documents/Projects/Investments/src')
 library(rvest)
 library(plyr)
 library(dplyr)

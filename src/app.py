@@ -2,7 +2,6 @@ from catch_clean import BrazilianIndicators
 from analysis import AnalysisSeriesMontly, AnalysisSerieDaily
 import streamlit as st
 import pandas as pd
-import numpy as np
 
 
 data = BrazilianIndicators()
@@ -25,7 +24,7 @@ def main():
     # Visualização gráfica
     st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.1</h1>", 
                 unsafe_allow_html=True)
-    st.title('Brazilian Investiments Analysis (R$)')
+    st.title('Brazilian Investments Analysis (R$)')
     indicators = ['Indexers', 'Stocks']
     indicator = st.sidebar.selectbox('Indicator', indicators)
     if indicator == 'Indexers':
