@@ -24,7 +24,7 @@ def main():
     # Visualização gráfica
     st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.1</h1>", 
                 unsafe_allow_html=True)
-    st.title('Brazilian Investments Analysis (R$)')
+    st.title('Brazilian Investments Analysis')
     indicators = ['Indexers', 'Stocks']
     indicator = st.sidebar.selectbox('Indicator', indicators)
     if indicator == 'Indexers':

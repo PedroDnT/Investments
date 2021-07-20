@@ -86,7 +86,7 @@ class AnalysisSerieDaily:
     '''
     --> Analyzes the time series of the selected indicator(s)
     '''
-    def __init__(self, data=None, initial_date=None, final_date=None, axis_x='data', x_label='', y_label='%'):
+    def __init__(self, data=None, initial_date=None, final_date=None, axis_x='data', x_label='', y_label='R$'):
         '''
         :param data: DataFrame Pandas of time series with daily indicators
         :param data_inicial: Initial date of time series
