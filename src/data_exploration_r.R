@@ -1,4 +1,6 @@
 # Instalando pacotes
+install.packages('rvest')
+install.packages('BatchGetSymbols')
 #install.packages('corrplot')
 # Pacotes adicionais
 library(rvest)

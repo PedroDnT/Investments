@@ -1,10 +1,10 @@
-setwd('/home/marcos/Documents/Projects/Investments/src')
+setwd('/home/mg/Documents/Investments/src')
 library(rvest)
 library(plyr)
 library(dplyr)
 library(BatchGetSymbols)
 
-ibov = function(initial_date='2015-01-01', final_date=Sys.Date(), benchmark='^BVSP'){
+ibov = function(initial_date='2015-04-01', final_date=Sys.Date(), benchmark='^BVSP'){
     
     # Capturing the IBOV indices on the current date
     indices=GetIbovStocks()
@@ -33,3 +33,4 @@ ibov = function(initial_date='2015-01-01', final_date=Sys.Date(), benchmark='^BV
 }
 
 ibov()
+
