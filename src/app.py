@@ -23,6 +23,7 @@ def main():
     st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.2</h1>", 
                 unsafe_allow_html=True)
     st.title('Financial Data Analysis')
+    st.sidebar.selectbox('Country', ['Brazil'])
     indicators = ['Indexers', 'Stocks']
     indicator = st.sidebar.selectbox('Indicator', indicators)
     if indicator == 'Indexers':
