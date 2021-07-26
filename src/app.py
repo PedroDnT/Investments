@@ -10,7 +10,6 @@ data.clean_data_ibge()
 data = data.data_frame_indicators()
 ibov = pd.read_csv('./data/ibov.csv')
 ibov['date'] = pd.to_datetime(ibov['date'])
-ibov.set_index('date', inplace=True)
 # Indexers description
 description = pd.DataFrame({'Savings': ['SAVINGS: Profitability on the 1st day of the month (BCB-Demab)'],
                             'CDI': ['CDI: Monthly Accumulated Interest Rate (BCB-Demab)'],
@@ -21,26 +20,24 @@ description = pd.DataFrame({'Savings': ['SAVINGS: Profitability on the 1st day o
 def main():
     stocks_ibov = ibov.columns
     indexers = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
-    # Visualização gráfica
     st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.1</h1>", 
                 unsafe_allow_html=True)
     st.title('Brazilian Investments Analysis')
     indicators = ['Indexers', 'Stocks']
     indicator = st.sidebar.selectbox('Indicator', indicators)
     if indicator == 'Indexers':
-        anos = data['date'].dt.year.unique().tolist()
-        period = st.sidebar.slider('Select the period', min_value=min(anos), max_value=max(anos), value=(min(anos), max(anos)))
-        indexer = st.sidebar.selectbox('Indexer', indexers)
-        analyze = AnalysisSeriesMontly(data, period)
-        analyze.visualize_indicator(axis_y=indexer, description_indicator=indexer)
+        start_year = str(st.sidebar.selectbox('Start Year', data['date'].dt.year.unique()))
+        indexer = st.sidebar.multiselect('Indexer', indexers, default=['Savings'])
+        analyze = AnalysisSeriesMontly(data, start_year)
+        analyze.visualize_indicator(indexer)
     elif indicator == 'Stocks':
-        initial_date = st.sidebar.date_input('Initial Date', ibov.index.min())
-        final_date = st.sidebar.date_input('Final Date', ibov.index.max())
-        analysis_daily = AnalysisSerieDaily(ibov, initial_date, final_date)
-        visualize_stocks = st.sidebar.selectbox('Stocks', stocks_ibov)
-        analysis_daily.visualize_indicator_daily(visualize_stocks, visualize_stocks)
+        start_date = str(st.sidebar.date_input('Initial Date', ibov['date'].min()))
+        analysis_daily = AnalysisSerieDaily(ibov, start_date)
+        visualize_stocks = st.sidebar.multiselect('Stocks', stocks_ibov, default='Price ABEV3.SA')
+        analysis_daily.visualize_indicator_daily(visualize_stocks)
     if indicator == 'Indexers':
-        st.text(description[indexer][0])
+        for index in indexer:
+            st.text(description[index][0])
     st.markdown('[GitHub repository](https://github.com/MarcosRMG/Investimentos)')
     
 if __name__ == '__main__':
