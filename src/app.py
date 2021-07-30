@@ -18,7 +18,7 @@ description = pd.DataFrame({'Savings': ['SAVINGS: Profitability on the 1st day o
                             'Selic': ['Selic: Monthly Accumulated Interest Rate (BCB-Demab)']})
 
 def main():
-    stocks_ibov = ibov.columns
+    stocks_ibov = ibov.columns[1:]
     indexers = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
     st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.2</h1>", 
                 unsafe_allow_html=True)
