@@ -31,6 +31,7 @@ ibov = function(initial_date='2015-04-01', final_date=Sys.Date(), benchmark='^BV
     # Generating a csv file with the final DataFrame
     return(write.table(stocks, '../data/ibov.csv', sep=','))
 }
-
+ 
+   
 ibov()
 
