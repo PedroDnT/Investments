@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from pandas.io.formats.style import Styler
 
 
 class AnalysisSeriesMontly:
@@ -198,6 +199,7 @@ class AnalysisSerieDaily:
         for stocks in axis_y:  
             dic[stocks] = [round(self._data_slice[stocks].iloc[-1] - self._data_slice[stocks].iloc[0], 2)]
         df = pd.DataFrame(dic)
+        df = Styler(df, 2)
         st.write('Valorization R$')
         st.dataframe(df)
 
