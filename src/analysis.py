@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from pandas.io.formats.style import Styler
 
 
 class AnalysisSeriesMontly:
@@ -61,7 +60,7 @@ class AnalysisSeriesMontly:
             dic[f'{indexers} %'] = [round(sum(self._data_slice[indexers]), 2)]
         df = pd.DataFrame(dic)
         st.write('Accumulated in the period')
-        st.dataframe(Styler(df, 2))        
+        st.dataframe(df)        
 
     
 class AnalysisSerieDaily:
@@ -186,7 +185,7 @@ class AnalysisSerieDaily:
             dic[stocks] = [round(self._data_normalized[stocks].iloc[-1] - self._data_normalized[stocks].iloc[0], 2)]
         df = pd.DataFrame(dic)
         st.write('Over Time Valorization')
-        st.dataframe(Styler(df, 2))
+        st.dataframe(df)
 
     
     def valorization_metric(self, axis_y=None):
@@ -200,7 +199,7 @@ class AnalysisSerieDaily:
             dic[stocks] = [round(self._data_slice[stocks].iloc[-1] - self._data_slice[stocks].iloc[0], 2)]
         df = pd.DataFrame(dic)
         st.write('Valorization R$')
-        st.dataframe(Styler(df, 2))
+        st.dataframe(df)
 
     
     
