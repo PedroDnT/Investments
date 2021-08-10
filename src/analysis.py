@@ -60,7 +60,8 @@ class AnalysisSeriesMontly:
         for indexers in axis_y:  
             dic[f'{indexers} %'] = [round(sum(self._data_slice[indexers]), 2)]
         df = pd.DataFrame(dic)
-        st.write('Accumulated in the period')
+        st.write('Accumulated')
+        df = Styler(df, 2)
         st.dataframe(df)        
 
     
@@ -98,9 +99,9 @@ class AnalysisSerieDaily:
         '''
         # Selected data
         self._data_slice = self._data.query('date >= @self._start_date')
-        self._data_melt = self._data_slice.melt(id_vars='date', value_vars=axis_y, var_name='indexers', value_name='%')
+        self._data_melt = self._data_slice.melt(id_vars='date', value_vars=axis_y, var_name='indexers', value_name='R$')
         # Visualization
-        fig = px.line(self._data_melt, 'date', '%', color='indexers')
+        fig = px.line(self._data_melt, 'date', 'R$', color='indexers')
         # Data Souce
         annotations = list()
         annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
@@ -142,9 +143,9 @@ class AnalysisSerieDaily:
         :param indicator: Selected indicator
         '''
         if len(axis_y) == 1:
-            data_melt = self._data_normalized.melt(id_vars='date', var_name='indexers', value_name='%')
+            data_melt = self._data_normalized.melt(id_vars='date', var_name='indexers', value_name='x')
             # Visualization
-            fig = px.line(data_melt, 'date', '%', color='indexers')
+            fig = px.line(data_melt, 'date', 'x', color='indexers')
             annotations = list()
             annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
                               xanchor='center', yanchor='top',
@@ -158,9 +159,9 @@ class AnalysisSerieDaily:
                             annotations=annotations)
             st.plotly_chart(fig, use_container_width=True)
         elif len(axis_y) > 1:
-            data_melt = self._data_normalized.melt(id_vars='date', var_name='indexers', value_name='%')
+            data_melt = self._data_normalized.melt(id_vars='date', var_name='indexers', value_name='x')
             # Visualization
-            fig = px.line(data_melt, 'date', '%', color='indexers')
+            fig = px.line(data_melt, 'date', 'x', color='indexers')
             annotations = list()
             annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
                               xanchor='center', yanchor='top',
@@ -183,9 +184,10 @@ class AnalysisSerieDaily:
         ''' 
         dic = dict()
         for stocks in axis_y:  
-            dic[stocks] = [round(self._data_normalized[stocks].iloc[-1] - self._data_normalized[stocks].iloc[0], 2)]
+            dic[stocks] = [round((self._data_normalized[stocks].iloc[-1] - self._data_normalized[stocks].iloc[0]) * 100, 0)]
         df = pd.DataFrame(dic)
-        st.write('Over Time Valorization')
+        df = Styler(df, 0)
+        st.write('Valorization %')
         st.dataframe(df)
 
     
@@ -197,9 +199,9 @@ class AnalysisSerieDaily:
         ''' 
         dic = dict()
         for stocks in axis_y:  
-            dic[stocks] = [round(self._data_slice[stocks].iloc[-1] - self._data_slice[stocks].iloc[0], 2)]
+            dic[stocks] = [round(self._data_slice[stocks].iloc[-1] - self._data_slice[stocks].iloc[0], 1)]
         df = pd.DataFrame(dic)
-        df = Styler(df, 2)
+        df = Styler(df, 1)
         st.write('Valorization R$')
         st.dataframe(df)
 
