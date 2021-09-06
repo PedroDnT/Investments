@@ -242,16 +242,8 @@ class StockPrice:
                                                 high=self._data['High'],
                                                 low=self._data['Low'],
                                                 close=self._data['Close'])])
-            annotations = list()
-            annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
-                              xanchor='center', yanchor='top',
-                              text='Source: Yahoo Finance',
-                              font=dict(family='Arial',
-                                        size=12,
-                                        color='rgb(150,150,150)')))
             fig.update_layout(title=f'{self._tickers[0]} last 30 days',
-                            yaxis_title='R$',
-                            annotations=annotations)
+                            yaxis_title='R$')
             st.plotly_chart(fig, use_container_width=True)
         else:
             for ticker in self._tickers:
@@ -260,15 +252,7 @@ class StockPrice:
                                                     high=self._data['High'][ticker],
                                                     low=self._data['Low'][ticker],
                                                     close=self._data['Close'][ticker])])
-                annotations = list()
-                annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
-                              xanchor='center', yanchor='top',
-                              text='Source: Yahoo Finance',
-                              font=dict(family='Arial',
-                                        size=12,
-                                        color='rgb(150,150,150)')))
                 fig.update_layout(title=f'{ticker} last 30 days',
-                                yaxis_title='R$',
-                                annotations=annotations)
+                                yaxis_title='R$')
                 st.plotly_chart(fig, use_container_width=True)
     
