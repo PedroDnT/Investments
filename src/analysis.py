@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from pandas.io.formats.style import Styler
+import yfinance as yf
+from datetime import timedelta
+from datetime import date
+import plotly.graph_objects as go
 
 
 class AnalysisSeriesMontly:
@@ -206,4 +210,65 @@ class AnalysisSerieDaily:
         st.dataframe(df)
 
     
+class StockPrice:
+    '''
+    --> Catch data from Yahoo Finance to analysis
+    '''
+    def __init__(self, data=pd.DataFrame(), tickers=None):
+        '''
+        :param data: Requested data
+        :param tickers: Selected company tickers to download data
+        '''
+        self._data = data
+        self._tickers = tickers
+
+
+    def request_data(self):
+        today = date.today()
+        last_30_days = timedelta(30)
+        start = today - last_30_days
+        self._data = yf.download(tickers=self._tickers, start=start, end=today)
+
+
+    def candlestick(self):
+        '''
+        --> Download information from Yahoo Finance and show candlestick of last 30 days
+
+        :param ticker: Company ticker selected
+        '''
+        if len(self._tickers) == 1:
+            fig = go.Figure(data=[go.Candlestick(x=self._data.index,
+                                                open=self._data['Open'],
+                                                high=self._data['High'],
+                                                low=self._data['Low'],
+                                                close=self._data['Close'])])
+            annotations = list()
+            annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
+                              xanchor='center', yanchor='top',
+                              text='Source: Yahoo Finance',
+                              font=dict(family='Arial',
+                                        size=12,
+                                        color='rgb(150,150,150)')))
+            fig.update_layout(title=f'{self._tickers[0]} last 30 days',
+                            yaxis_title='R$',
+                            annotations=annotations)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            for ticker in self._tickers:
+                fig = go.Figure(data=[go.Candlestick(x=self._data.index,
+                                                    open=self._data['Open'][ticker],
+                                                    high=self._data['High'][ticker],
+                                                    low=self._data['Low'][ticker],
+                                                    close=self._data['Close'][ticker])])
+                annotations = list()
+                annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
+                              xanchor='center', yanchor='top',
+                              text='Source: Yahoo Finance',
+                              font=dict(family='Arial',
+                                        size=12,
+                                        color='rgb(150,150,150)')))
+                fig.update_layout(title=f'{ticker} last 30 days',
+                                yaxis_title='R$',
+                                annotations=annotations)
+                st.plotly_chart(fig, use_container_width=True)
     

@@ -1,14 +1,5 @@
-from analysis import StockPrice
-import streamlit as st
-import pandas as pd
-
-
-
-ibov_tickers = pd.read_csv('./data/ibov_tickers.csv')
-
-
 from catch_clean import BrazilianIndicators
-from analysis import AnalysisSeriesMontly, AnalysisSerieDaily, StockPrice
+from analysis import AnalysisSeriesMontly, AnalysisSerieDaily, candlestick
 import streamlit as st
 import pandas as pd
 
@@ -19,7 +10,6 @@ data.clean_data_ibge()
 data = data.data_frame_indicators()
 ibov = pd.read_csv('./data/ibov.csv')
 ibov['date'] = pd.to_datetime(ibov['date'])
-ibov.columns = ibov.columns.str.lstrip()
 # Indexers description
 description = pd.DataFrame({'Savings': ['SAVINGS: Profitability on the 1st day of the month (BCB-Demab)'],
                             'CDI': ['CDI: Monthly Accumulated Interest Rate (BCB-Demab)'],
@@ -31,26 +21,23 @@ def main():
     st.set_page_config(layout='wide')
     stocks_ibov = ibov.columns[1:]
     indexers = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
-    st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.4</h1>", 
+    st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.3</h1>", 
                 unsafe_allow_html=True)
     st.title('Financial Data Analysis')
     st.sidebar.selectbox('Country', ['Brazil'])
     indicators = ['Indexers', 'Stocks']
     indicator = st.sidebar.selectbox('Indicator', indicators)
     if indicator == 'Indexers':
-        st.subheader('Brazilian Economic Indices')
         start_year = str(st.sidebar.selectbox('Start Year', sorted(data['date'].dt.year.unique(), reverse=True)))
         indexer = st.sidebar.multiselect('Indexer', indexers, default=['Savings'])
         analyze = AnalysisSeriesMontly(data, start_year)
         analyze.visualize_indicator(indexer)
         analyze.acumulated(indexer)
     elif indicator == 'Stocks':
-        st.subheader('Brazilian Stock Price')
         start_date = str(st.sidebar.date_input('Initial Date', ibov['date'].min()))
         analysis_daily = AnalysisSerieDaily(ibov, start_date)
-        visualize_stocks = st.sidebar.multiselect('Stocks', stocks_ibov, default='ABEV3.SA')
+        visualize_stocks = st.sidebar.multiselect('Stocks', stocks_ibov, default='Price ABEV3.SA')
         normalize = st.sidebar.checkbox('Normalize')
-        candle = st.sidebar.checkbox('Candlestick')
         if normalize:
             analysis_daily.normalize_time_series(visualize_stocks)
             analysis_daily.visualize_serie_normalized(visualize_stocks)
@@ -58,10 +45,6 @@ def main():
         else:
             analysis_daily.visualize_indicator_daily(visualize_stocks)
             analysis_daily.valorization_metric(visualize_stocks)
-        if candle:
-            candle_data = StockPrice(tickers=visualize_stocks)
-            candle_data.request_data()
-            candle_data.candlestick()
     if indicator == 'Indexers':
         for index in indexer:
             st.text(description[index][0])

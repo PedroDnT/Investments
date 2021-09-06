@@ -1,13 +1,7 @@
-from catch_clean import BrazilianIndicators
-from analysis import AnalysisSerieDaily
+from analysis import StockPrice
 import pandas as pd
 
+ibov_tickers = pd.read_csv('../data/ibov_tickers.csv')
 
-ibov = pd.read_csv('../data/ibov.csv')
-ibov['date'] = pd.to_datetime(ibov['date'])
-
-ticker = ['Price ABEV3.SA']
-tickers = ['Price ABEV3.SA', 'Price B3SA3.SA']
-
-analysis = AnalysisSerieDaily(ibov)
-analysis.normalize_time_series(tickers)
+analysis = StockPrice()
+analysis.candlestick(ibov_tickers.iloc[0])
