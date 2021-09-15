@@ -2,6 +2,13 @@
 
 <a href="https://share.streamlit.io/marcosrmg/investments/src/app.py" target="_blank">Brazilian Investments Analysis</a>
 
+![alt_text](img/financial_analysis.png)
+
+The Web App uses Streamlit as a front-end solution, the objective is to visualize the main indicators of the Brazilian economy and the historical stock price of Brazilian companies listed on the IBOVESPA.
+
+Information has been collected from Yahoo.com and from public Brazilian government databases.
+
+
 
 Streamlit Debugging:
 
