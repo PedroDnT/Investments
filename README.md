@@ -1,6 +1,6 @@
 # Brazilian Investiments Analysis
 
-Web App: <a href="https://share.streamlit.io/marcosrmg/investments/src/app.py" target="_blank">Brazilian Investments Analysis</a>
+Web App: <a href="https://share.streamlit.io/marcosrmg/investments/src/app.py" target="_blank">Financial Data Analysis</a>
 
 
 Streamlit Debugging:
