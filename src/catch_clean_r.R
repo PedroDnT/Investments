@@ -1,10 +1,19 @@
-setwd('/home/mg/Documents/Investments/src')
+# Set local directory
+setwd('/home/marcos/Documents/Investments/src')
+
+# Install library
+#install.packages("rvest")
+#install.packages("plyr")
+#install.packages("dplyr")
+#install.packages("BatchGetSymbols")
+
+# Import library
 library(rvest)
 library(plyr)
 library(dplyr)
 library(BatchGetSymbols)
 
-ibov = function(initial_date='2015-04-01', final_date=Sys.Date(), benchmark='^BVSP'){
+ibov = function(initial_date='2021-01-01', final_date=Sys.Date(), benchmark='^BVSP'){
     
     # Capturing the IBOV indexes on the current date
     indices=GetIbovStocks()

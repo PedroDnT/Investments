@@ -8,4 +8,5 @@ Pipfile.lock/
 __pycache__/
 
 src/.Rhistory
+src/.RData
 src/.ipynb_checkpoints/data_exploration-checkpoint.ipynb

@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.express as px
 from pandas.io.formats.style import Styler
 import yfinance as yf
-from datetime import timedelta
 from datetime import date
 import plotly.graph_objects as go
 
@@ -223,11 +222,11 @@ class StockPrice:
         self._tickers = tickers
 
 
-    def request_data(self):
+    def request_data(self, start_date=None):
         today = date.today()
-        last_30_days = timedelta(30)
-        start = today - last_30_days
-        self._data = yf.download(tickers=self._tickers, start=start, end=today)
+        #last_30_days = timedelta(30)
+        #start = today - start_date
+        self._data = yf.download(tickers=self._tickers, start=start_date, end=today)
 
 
     def candlestick(self):
@@ -236,14 +235,16 @@ class StockPrice:
 
         :param ticker: Company ticker selected
         '''
+        print(self._data)
         if len(self._tickers) == 1:
             fig = go.Figure(data=[go.Candlestick(x=self._data.index,
                                                 open=self._data['Open'],
                                                 high=self._data['High'],
                                                 low=self._data['Low'],
                                                 close=self._data['Close'])])
-            fig.update_layout(title=f'{self._tickers[0]} last 30 days',
-                            yaxis_title='R$')
+            fig.update_layout(title=f'{self._tickers[0]}',
+                            yaxis_title='R$',
+                            height=550)
             st.plotly_chart(fig, use_container_width=True)
         else:
             for ticker in self._tickers:
@@ -252,7 +253,8 @@ class StockPrice:
                                                     high=self._data['High'][ticker],
                                                     low=self._data['Low'][ticker],
                                                     close=self._data['Close'][ticker])])
-                fig.update_layout(title=f'{ticker} last 30 days',
-                                yaxis_title='R$')
+                fig.update_layout(title=f'{ticker}',
+                                yaxis_title='R$',
+                                height=550)
                 st.plotly_chart(fig, use_container_width=True)
     
