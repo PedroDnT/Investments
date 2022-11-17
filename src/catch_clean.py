@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import date
 import requests
 import json
+import yfinance as yf
 
 
 class DownloadFilesBrGov:
@@ -138,3 +139,11 @@ class BrazilianIndicators:
         '''
         data_frame = pd.merge(self._data_frame_central_bank, self._data_frame_ibge, on='date')
         return data_frame
+
+def carteira_ibov(tickers_file_path: str, cols: list):
+    carteira = pd.read_csv(tickers_file_path, encoding='ISO-8859-1', sep=';', skiprows=1, skipfooter=2,
+                            usecols=cols)
+    carteira.reset_index(inplace=True)
+    carteira.columns = carteira.columns.str.lower()
+    carteira['index'] = carteira['index'] + '.SA'
+    return carteira

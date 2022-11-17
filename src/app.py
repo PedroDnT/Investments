@@ -2,25 +2,19 @@ from analysis import StockPrice
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-
-
-
-ibov_tickers = pd.read_csv('./data/ibov_tickers.csv')
-
-
+from catch_clean import carteira_ibov
 from catch_clean import BrazilianIndicators
 from analysis import AnalysisSeriesMontly, StockPrice
 import streamlit as st
 import pandas as pd
 
 
+carteira = carteira_ibov('./data/carteira_ibov.csv', cols=['Código']).copy()
+
 data = BrazilianIndicators()
 data.clean_data_bcb()
 data.clean_data_ibge()
 data = data.data_frame_indicators()
-ibov = pd.read_csv('./data/ibov.csv')
-ibov['date'] = pd.to_datetime(ibov['date'])
-ibov.columns = ibov.columns.str.lstrip()
 # Indexers description
 description = pd.DataFrame({'Savings': ['SAVINGS: Profitability on the 1st day of the month (BCB-Demab)'],
                             'CDI': ['CDI: Monthly Accumulated Interest Rate (BCB-Demab)'],
@@ -30,7 +24,6 @@ description = pd.DataFrame({'Savings': ['SAVINGS: Profitability on the 1st day o
 
 def main():
     st.set_page_config(layout='wide')
-    stocks_ibov = ibov.columns[1:]
     indexers = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
     st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.5</h1>", 
                 unsafe_allow_html=True)
@@ -50,10 +43,10 @@ def main():
             st.write('Please select a indexer!')
     elif indicator == 'Stocks':
         st.subheader('Brazilian Stock Price')
-        start_date = str(st.sidebar.date_input('Initial Date', datetime(2021, 1, 1)))
-        visualize_stocks = st.sidebar.multiselect('Stocks', stocks_ibov, default='ABEV3.SA')
+        start_date = str(st.sidebar.date_input('Initial Date', datetime(2022, 1, 1)))
+        visualize_stocks = st.sidebar.multiselect('Stocks', carteira['código'].values, default='AMBEV S/A')
         if visualize_stocks:
-            candle_data = StockPrice(tickers=visualize_stocks)
+            candle_data = StockPrice(companies=visualize_stocks, dados_carteira=carteira)
             candle_data.request_data(start_date=start_date)
             candle_data.candlestick()
         else:

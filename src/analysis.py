@@ -213,13 +213,15 @@ class StockPrice:
     '''
     --> Catch data from Yahoo Finance to analysis
     '''
-    def __init__(self, data=pd.DataFrame(), tickers=None):
+    def __init__(self, data=pd.DataFrame(), companies=None, dados_carteira=None):
         '''
         :param data: Requested data
         :param tickers: Selected company tickers to download data
         '''
         self._data = data
-        self._tickers = tickers
+        self._carteira = dados_carteira
+        self._companies = companies
+        self._tickers = self._carteira[self._carteira['código'].isin(self._companies)]['index'].tolist()
 
 
     def request_data(self, start_date=None):
