@@ -49,6 +49,7 @@ def main():
             candle_data = StockPrice(companies=visualize_stocks, dados_carteira=carteira)
             candle_data.request_data(start_date=start_date)
             candle_data.candlestick()
+            candle_data.histogram_view()
         else:
             st.write('Please select a stock option!')
     if indicator == 'Indexers':

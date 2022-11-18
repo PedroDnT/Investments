@@ -259,4 +259,19 @@ class StockPrice:
                                 yaxis_title='R$',
                                 height=550)
                 st.plotly_chart(fig, use_container_width=True)
+
+    def histogram_view(self):
+        '''
+        --> Show the stock price distribution
+        '''
+        if len(self._tickers) > 1:
+            st.subheader('Histogram Stock Price')
+            fig = px.histogram(self._data['Close'].melt(var_name='company'), x='value', color='company')
+            fig.update_layout(yaxis_title='Price R$')
+            st.plotly_chart(fig)
+        else:
+            st.subheader('Histogram Stock Price')
+            fig = px.histogram(self._data, x='Close')
+            fig.update_layout(yaxis_title='Price R$')
+            st.plotly_chart(fig)    
     

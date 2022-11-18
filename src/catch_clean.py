@@ -38,7 +38,7 @@ class DownloadFilesBrGov:
 
         :param url: URL of API service
         '''
-        data_json = requests.get(url)
+        data_json = requests.get(url, verify='./data/certificate.pem')
         data_dic = json.loads(data_json.content)
         return data_dic
 
