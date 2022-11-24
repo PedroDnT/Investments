@@ -209,35 +209,25 @@ class AnalysisSerieDaily:
         st.dataframe(df)
 
     
-class StockPrice:
+class StockPriceViz:
     '''
     --> Catch data from Yahoo Finance to analysis
     '''
-    def __init__(self, data=pd.DataFrame(), companies=None, dados_carteira=None):
+    def __init__(self, data, tickers):
         '''
         :param data: Requested data
         :param tickers: Selected company tickers to download data
         '''
         self._data = data
-        self._carteira = dados_carteira
-        self._companies = companies
-        self._tickers = self._carteira[self._carteira['código'].isin(self._companies)]['index'].tolist()
+        self._tickers = tickers
 
-
-    def request_data(self, start_date=None):
-        today = date.today()
-        #last_30_days = timedelta(30)
-        #start = today - start_date
-        self._data = yf.download(tickers=self._tickers, start=start_date, end=today)
-
-
+    
     def candlestick(self):
         '''
         --> Download information from Yahoo Finance and show candlestick of last 30 days
 
         :param ticker: Company ticker selected
         '''
-        print(self._data)
         if len(self._tickers) == 1:
             fig = go.Figure(data=[go.Candlestick(x=self._data.index,
                                                 open=self._data['Open'],
@@ -260,18 +250,39 @@ class StockPrice:
                                 height=550)
                 st.plotly_chart(fig, use_container_width=True)
 
+
     def histogram_view(self):
         '''
         --> Show the stock price distribution
         '''
         if len(self._tickers) > 1:
-            st.subheader('Histogram Stock Price')
             fig = px.histogram(self._data['Close'].melt(var_name='company'), x='value', color='company')
             fig.update_layout(yaxis_title='Price R$')
             st.plotly_chart(fig)
         else:
-            st.subheader('Histogram Stock Price')
             fig = px.histogram(self._data, x='Close')
             fig.update_layout(yaxis_title='Price R$')
             st.plotly_chart(fig)    
+
+    def descriptive_statistics(self):
+        if len(self._tickers) > 1:
+            for ticker in self._tickers:
+                st.dataframe(self._data['Close'][[ticker]].describe().T)    
+        else:
+            st.dataframe(self._data[['Close']].describe().T)
+
+
+    def time_series(self):
+        if len(self._tickers) > 1:
+            data = self._data[['Close']].melt(ignore_index=False, col_level=1)
+            fig = px.line(data, x=data.index, y=data['value'], color='variable')
+            st.plotly_chart(fig)    
+        else:
+            st.plotly_chart(px.line(self._data, x=self._data.index, y='Close'))
     
+@st.cache    
+def request_data(selected_tickers, start_date):
+        today = date.today()
+        #last_30_days = timedelta(30)
+        #start = today - start_date
+        return yf.download(tickers=selected_tickers, start=start_date, end=today)

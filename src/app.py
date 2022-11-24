@@ -1,10 +1,9 @@
-from analysis import StockPrice
 import streamlit as st
 import pandas as pd
 from datetime import datetime
 from catch_clean import carteira_ibov
 from catch_clean import BrazilianIndicators
-from analysis import AnalysisSeriesMontly, StockPrice
+from analysis import AnalysisSeriesMontly, StockPriceViz, request_data
 import streamlit as st
 import pandas as pd
 
@@ -25,12 +24,14 @@ description = pd.DataFrame({'Savings': ['SAVINGS: Profitability on the 1st day o
 def main():
     st.set_page_config(layout='wide')
     indexers = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
+    option_view = ['Time Series', 'Candle', 'Histogram', 'Descriptive Statistics']
     st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.5</h1>", 
                 unsafe_allow_html=True)
     st.title('Financial Data Analysis')
     st.sidebar.selectbox('Country', ['Brazil'])
     indicators = ['Indexers', 'Stocks']
     indicator = st.sidebar.selectbox('Indicator', indicators)
+    # ============================Economics indices visualizations============================
     if indicator == 'Indexers':
         st.subheader('Brazilian Economic Indices')
         start_year = str(st.sidebar.selectbox('Start Year', sorted(data['date'].dt.year.unique(), reverse=True)))
@@ -41,15 +42,31 @@ def main():
             analyze.acumulated(indexer)
         else:
             st.write('Please select a indexer!')
+    # ============================Stocks prices visualizations============================
     elif indicator == 'Stocks':
-        st.subheader('Brazilian Stock Price')
         start_date = str(st.sidebar.date_input('Initial Date', datetime(2022, 1, 1)))
         visualize_stocks = st.sidebar.multiselect('Stocks', carteira['código'].values, default='AMBEV S/A')
+        selected_tickers = carteira[carteira['código'].isin(visualize_stocks)]['index'].tolist()
         if visualize_stocks:
-            candle_data = StockPrice(companies=visualize_stocks, dados_carteira=carteira)
-            candle_data.request_data(start_date=start_date)
-            candle_data.candlestick()
-            candle_data.histogram_view()
+            # Select the visualization type option
+            view = st.sidebar.selectbox('View', option_view)
+            # Download data from Yahoo Finance
+            stock_data = request_data(selected_tickers, start_date)
+            stock_viz = StockPriceViz(data=stock_data, tickers=selected_tickers)
+            if view == 'Candle':  
+                # Show selected visualization
+                st.subheader('Brazilian Stock Price')
+                stock_viz.candlestick()
+            if view == 'Time Series':
+                st.subheader('Time Series Stock Price')
+                stock_viz.time_series()
+            elif view == 'Histogram':
+                # Show selected visualization
+                st.subheader('Histogram Stock Price')
+                stock_viz.histogram_view()
+            elif view == 'Descriptive Statistics':
+                st.subheader('Descriptive Statistics')
+                stock_viz.descriptive_statistics()
         else:
             st.write('Please select a stock option!')
     if indicator == 'Indexers':
