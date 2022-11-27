@@ -15,78 +15,76 @@ data.clean_data_bcb()
 data.clean_data_ibge()
 data = data.data_frame_indicators()
 # Indexers description
-description = pd.DataFrame({'Savings': ['SAVINGS: Profitability on the 1st day of the month (BCB-Demab)'],
-                            'CDI': ['CDI: Monthly Accumulated Interest Rate (BCB-Demab)'],
-                            'IPCA': ['IPCA: Covers families with income from 1 to 40 minimum wages (IBGE)'],
-                            'INPC': ['INPC: Covers families with income from 1 a 5 minimum wages (IBGE)'],
-                            'Selic': ['Selic: Monthly Accumulated Interest Rate (BCB-Demab)']})
+description = pd.DataFrame({'Poupança': ['Poupança: Rentabilidade no 1º dia do mês (BCB-Demab)'],
+                            'CDI': ['CDI: Taxa de Juros Acumulada Mensal (BCB-Demab)'],
+                            'IPCA': ['IPCA: Abrange famílias com renda de 1 a 40 salários mínimos (IBGE)'],
+                            'INPC': ['INPC: Abrange famílias com renda de 1 a 5 salários mínimos (IBGE)'],
+                            'Selic': ['Selic: Taxa de Juros Acumulada Mensal (BCB-Demab)']})
 
 def main():
     st.set_page_config(layout='wide')
-    indexers = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
-    option_view = ['Time Series', 'Candle', 'Histogram', 'Descriptive Statistics']
-    option_view_indexes = ['Time Series', 'Correlation']
-    st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.5</h1>", 
-                unsafe_allow_html=True)
-    st.title('Financial Data Analysis')
-    st.sidebar.selectbox('Country', ['Brazil'])
-    indicators = ['Indexers', 'Stocks']
-    indicator = st.sidebar.selectbox('Indicator', indicators)
+    indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
+    option_view = ['Série Temporal', 'Candlestick', 'Histograma', 'Estatística Descritiva']
+    option_view_indexes = ['Série Temporal', 'Correlação']
+    st.title('Análise do Mercado Financeiro')
+    st.sidebar.selectbox('País', ['Brasil'])
+    indicators = ['Índices Econômicos', 'Ações IBOVESPA']
+    indicator = st.sidebar.selectbox('Indicadores', indicators)
     # ============================Economics indices visualizations============================
-    if indicator == 'Indexers':
-        st.subheader('Brazilian Economic Indices')
-        start_year = str(st.sidebar.selectbox('Start Year', sorted(data['date'].dt.year.unique(), reverse=True)))
-        all = st.sidebar.checkbox('Select all')
+    if indicator == 'Índices Econômicos':
+        st.subheader('Índices Econômicos Brasileiros')
+        start_year = str(st.sidebar.selectbox('Ano inicial', sorted(data['date'].dt.year.unique(), reverse=True)))
+        all = st.sidebar.checkbox('Selecionar todos')
         if all:
-            indexer = st.sidebar.multiselect('Indexer', indexers, default=indexers)
+            indexer = st.sidebar.multiselect('Índice', indexers, default=indexers)
         else:
-            indexer = st.sidebar.multiselect('Indexer', indexers, default=['Savings'])
+            indexer = st.sidebar.multiselect('Índice', indexers, default=['Poupança'])
         # Time series of indexers
         if indexer:
             # View options
-            view = st.sidebar.selectbox('View', option_view_indexes)
+            view = st.sidebar.selectbox('Gráfico', option_view_indexes)
             # Data range
-            if indexer == 'All':
-                indexer = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
+            if indexer == 'Selecionar todos':
+                indexer = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
             analyze = AnalysisSeriesMontly(data, start_year, indexer)
-            if view == 'Time Series':
+            if view == 'Série Temporal':
                 analyze.visualize_indicator()
                 analyze.acumulated()
-            elif view == 'Correlation':
+            elif view == 'Correlação':
                 analyze.correlation()
         else:
-            st.write('Please select a indexer!')
+            st.write('Selecione um índice!')
     # ============================Stocks prices visualizations============================
-    elif indicator == 'Stocks':
-        start_date = str(st.sidebar.date_input('Initial Date', datetime(2022, 1, 1)))
+    elif indicator == 'Ações IBOVESPA':
+        start_date = str(st.sidebar.date_input('Data inicial', datetime(2022, 1, 1)))
         visualize_stocks = st.sidebar.multiselect('Stocks', carteira['código'].values, default='AMBEV S/A')
         selected_tickers = carteira[carteira['código'].isin(visualize_stocks)]['index'].tolist()
         if visualize_stocks:
             # Select the visualization type option
-            view = st.sidebar.selectbox('View', option_view)
+            view = st.sidebar.selectbox('Gráfico', option_view)
             # Download data from Yahoo Finance
             stock_data = request_data(selected_tickers, start_date)
             stock_viz = StockPriceViz(data=stock_data, tickers=selected_tickers)
-            if view == 'Candle':  
+            if view == 'Candlestick':  
                 # Show selected visualization
-                st.subheader('Brazilian Stock Price')
+                st.subheader('Cotação de preço')
                 stock_viz.candlestick()
-            if view == 'Time Series':
-                st.subheader('Time Series Stock Price')
+            if view == 'Série Temporal':
+                st.subheader('Histórico do preço de fechamento')
                 stock_viz.time_series()
-            elif view == 'Histogram':
+            elif view == 'Histograma':
                 # Show selected visualization
-                st.subheader('Histogram Stock Price')
+                st.subheader('Distribuição da cotação do preço')
                 stock_viz.histogram_view()
-            elif view == 'Descriptive Statistics':
-                st.subheader('Descriptive Statistics')
+            elif view == 'Estatística Descritiva':
+                st.subheader('Estatística Descritiva')
                 stock_viz.descriptive_statistics()
         else:
-            st.write('Please select a stock option!')
-    if indicator == 'Indexers':
+            st.write('Selecione uma opção!')
+    if indicator == 'Índices':
         for index in indexer:
             st.text(description[index][0])
     st.markdown('[GitHub](https://github.com/MarcosRMG/Investimentos)')
-
+    st.markdown('Version 1.6')
 if __name__ == '__main__':
     main()

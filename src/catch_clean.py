@@ -79,7 +79,7 @@ class BrazilianIndicators:
     '''
     --> Takes and cleans information about investments and indexes and group it into a DataFrame Pandas
     '''
-    def __init__(self, indicators_bcb=['Savings', 'CDI', 'Selic'], indicators_ibge=['INPC', 'IPCA'],
+    def __init__(self, indicators_bcb=['Poupança', 'CDI', 'Selic'], indicators_ibge=['INPC', 'IPCA'],
                 data_frame_central_bank=pd.DataFrame(), 
                 files_central_bank=['./data/savings.csv', './data/cdi.csv', './data/selic.csv'], 
                 data_frame_ibge=pd.DataFrame(), 

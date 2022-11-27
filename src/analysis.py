@@ -46,7 +46,7 @@ class AnalysisSeriesMontly:
         annotations = list()
         annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
                               xanchor='center', yanchor='top',
-                              text='Source: Brazilian Government',
+                              text='Fonte: Governo Brasileiro',
                               font=dict(family='Arial',
                                         size=12,
                                         color='rgb(150,150,150)'),
@@ -67,7 +67,7 @@ class AnalysisSeriesMontly:
         for indexers in self._axis_y:  
             dic[f'{indexers} %'] = [round(sum(self._data_slice[indexers]), 2)]
         df = pd.DataFrame(dic)
-        st.write('Accumulated')
+        st.write('Acumulado no período')
         df = Styler(df, 2)
         st.dataframe(df)  
 
@@ -80,14 +80,14 @@ class AnalysisSeriesMontly:
         # Mask to matrix
         mask = np.zeros_like(df_corr)
         mask[np.triu_indices_from(mask)] = True
-        # Viz pltly
-        fig = px.imshow(df_corr, text_auto=True)
-        st.plotly_chart(fig) 
         # Viz seaborn
-        # fig = plt.figure(figsize=(3, 2))
-        # ax = sns.heatmap(df_corr, annot=True, mask=mask)
-        # ax.set_title('Correlation', loc='left', fontsize=5)
-        # st.pyplot(fig)
+        fig, ax = plt.subplots()
+        sns.set(rc={"figure.figsize":(4, 3)}, font_scale=0.5)
+        ax = sns.heatmap(df_corr, annot=True, mask=mask, annot_kws={"size":5})
+        ax.set_title('Correlação', loc='left', fontsize=8)
+        plt.xticks(rotation=45, fontsize=5)
+        plt.yticks(fontsize=5)
+        st.pyplot(fig)
 
     
 class AnalysisSerieDaily:
@@ -279,32 +279,51 @@ class StockPriceViz:
         '''
         if len(self._tickers) > 1:
             fig = px.histogram(self._data['Close'].melt(var_name='company'), x='value', color='company')
-            fig.update_layout(yaxis_title='Price R$')
+            fig.update_layout(
+                xaxis_title='R$',
+                yaxis_title='Frequência')
             st.plotly_chart(fig)
         else:
             fig = px.histogram(self._data, x='Close')
-            fig.update_layout(yaxis_title='Price R$')
+            fig.update_layout(
+                xaxis_title='R$',
+                yaxis_title='Frequência')
             st.plotly_chart(fig)    
 
     def descriptive_statistics(self):
         if len(self._tickers) > 1:
             for ticker in self._tickers:
-                st.dataframe(self._data['Close'][[ticker]].describe().T)    
+                df_stats = self._data['Close'][[ticker]].describe().T.round()
+                df_stats.columns = ['registros', 'média', 'desvio padrão', 'min', 'Q1', 'Q2', 'Q3', 'max']
+                df_stats['range'] = df_stats['max'] - df_stats['min']
+                df_stats = df_stats[['registros', 'min', 'max', 'range', 'média', 'desvio padrão', 'Q1', 'Q2', 'Q3']]
+                st.dataframe(df_stats.style.format('{:.0f}'))    
         else:
-            st.dataframe(self._data[['Close']].describe().T)
+            df_stats = self._data[['Close']].describe().T.round()
+            df_stats.columns = ['registros', 'média', 'desvio padrão', 'min', 'Q1', 'Q2', 'Q3', 'max']
+            df_stats['range'] = df_stats['max'] - df_stats['min']
+            df_stats = df_stats[['registros', 'min', 'max', 'range', 'média', 'desvio padrão', 'Q1', 'Q2', 'Q3']]
+            st.dataframe(df_stats.style.format('{:.0f}'))
 
 
     def time_series(self):
         if len(self._tickers) > 1:
             data = self._data[['Close']].melt(ignore_index=False, col_level=1)
             fig = px.line(data, x=data.index, y=data['value'], color='variable')
+            fig.update_layout(
+                xaxis_title='Data',
+                yaxis_title='R$'
+            )
             st.plotly_chart(fig)    
         else:
-            st.plotly_chart(px.line(self._data, x=self._data.index, y='Close'))
+            fig = px.line(self._data, x=self._data.index, y='Close')
+            fig.update_layout(
+                xaxis_title='Data',
+                yaxis_title='R$'
+            )
+            st.plotly_chart(fig)
     
 @st.cache    
 def request_data(selected_tickers, start_date):
         today = date.today()
-        #last_30_days = timedelta(30)
-        #start = today - start_date
         return yf.download(tickers=selected_tickers, start=start_date, end=today)
