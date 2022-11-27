@@ -142,7 +142,7 @@ class BrazilianIndicators:
 
 def carteira_ibov(tickers_file_path: str, cols: list):
     carteira = pd.read_csv(tickers_file_path, encoding='ISO-8859-1', sep=';', skiprows=1, skipfooter=2,
-                            usecols=cols)
+                            usecols=cols, engine='python')
     carteira.reset_index(inplace=True)
     carteira.columns = carteira.columns.str.lower()
     carteira['index'] = carteira['index'] + '.SA'

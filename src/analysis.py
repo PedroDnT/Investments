@@ -1,5 +1,8 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import plotly.express as px
 from pandas.io.formats.style import Styler
 import yfinance as yf
@@ -11,7 +14,7 @@ class AnalysisSeriesMontly:
     '''
     --> Analyzes the time series of the selected indicator(s)
     '''
-    def __init__(self, data=None, start_date=None, axis_x='date', x_label='', y_label='%', data_slice=pd.DataFrame):
+    def __init__(self, data, start_date, axis_y, axis_x='date', x_label='', y_label='%'):
         '''
         :param data: DataFrame Pandas of the time series with monthly indicators
         :param start_date: Selected period to analysis
@@ -23,12 +26,13 @@ class AnalysisSeriesMontly:
         self._data = data
         self._start_date = start_date
         self._axis_x = axis_x
+        self._axis_y = axis_y
         self._x_label = x_label
         self._y_label = y_label
-        self._data_slice = data_slice
+        self._data_slice = self._data.query('date >= @self._start_date')
 
 
-    def visualize_indicator(self, axis_y=None):
+    def visualize_indicator(self):
         '''
         --> Visualize the selected indicator
 
@@ -36,7 +40,7 @@ class AnalysisSeriesMontly:
         '''
         # Selected data
         self._data_slice = self._data.query('date >= @self._start_date') 
-        data_melt = self._data_slice.melt(id_vars='date', value_vars=axis_y, var_name='indexers', value_name='%')
+        data_melt = self._data_slice.melt(id_vars='date', value_vars=self._axis_y, var_name='indexers', value_name='%')
         # Visualization
         fig = px.line(data_melt, 'date', '%', color='indexers')
         annotations = list()
@@ -53,19 +57,37 @@ class AnalysisSeriesMontly:
         st.plotly_chart(fig, use_container_width=True)
 
 
-    def acumulated(self, axis_y=None):
+    def acumulated(self):
         '''
         --> Print the metric referal to accumulated time series
 
         :param axis_y: Selected indicator
         ''' 
         dic = dict()
-        for indexers in axis_y:  
+        for indexers in self._axis_y:  
             dic[f'{indexers} %'] = [round(sum(self._data_slice[indexers]), 2)]
         df = pd.DataFrame(dic)
         st.write('Accumulated')
         df = Styler(df, 2)
-        st.dataframe(df)        
+        st.dataframe(df)  
+
+    def correlation(self):
+        '''
+        --> Show the matrix correlation of selected indexes
+        '''
+        # Correlation calc
+        df_corr = self._data_slice[self._axis_y].corr().round(1)
+        # Mask to matrix
+        mask = np.zeros_like(df_corr)
+        mask[np.triu_indices_from(mask)] = True
+        # Viz pltly
+        fig = px.imshow(df_corr, text_auto=True)
+        st.plotly_chart(fig) 
+        # Viz seaborn
+        # fig = plt.figure(figsize=(3, 2))
+        # ax = sns.heatmap(df_corr, annot=True, mask=mask)
+        # ax.set_title('Correlation', loc='left', fontsize=5)
+        # st.pyplot(fig)
 
     
 class AnalysisSerieDaily:

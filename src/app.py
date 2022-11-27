@@ -25,6 +25,7 @@ def main():
     st.set_page_config(layout='wide')
     indexers = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
     option_view = ['Time Series', 'Candle', 'Histogram', 'Descriptive Statistics']
+    option_view_indexes = ['Time Series', 'Correlation']
     st.markdown("<h1 style='text-align: right; font-size: 15px; font-weight: normal'>Version 1.5</h1>", 
                 unsafe_allow_html=True)
     st.title('Financial Data Analysis')
@@ -35,11 +36,24 @@ def main():
     if indicator == 'Indexers':
         st.subheader('Brazilian Economic Indices')
         start_year = str(st.sidebar.selectbox('Start Year', sorted(data['date'].dt.year.unique(), reverse=True)))
-        indexer = st.sidebar.multiselect('Indexer', indexers, default=['Savings'])
+        all = st.sidebar.checkbox('Select all')
+        if all:
+            indexer = st.sidebar.multiselect('Indexer', indexers, default=indexers)
+        else:
+            indexer = st.sidebar.multiselect('Indexer', indexers, default=['Savings'])
+        # Time series of indexers
         if indexer:
-            analyze = AnalysisSeriesMontly(data, start_year)
-            analyze.visualize_indicator(indexer)
-            analyze.acumulated(indexer)
+            # View options
+            view = st.sidebar.selectbox('View', option_view_indexes)
+            # Data range
+            if indexer == 'All':
+                indexer = ['Savings', 'CDI', 'IPCA', 'INPC', 'Selic']
+            analyze = AnalysisSeriesMontly(data, start_year, indexer)
+            if view == 'Time Series':
+                analyze.visualize_indicator()
+                analyze.acumulated()
+            elif view == 'Correlation':
+                analyze.correlation()
         else:
             st.write('Please select a indexer!')
     # ============================Stocks prices visualizations============================
