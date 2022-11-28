@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 from catch_clean import carteira_ibov
 from catch_clean import BrazilianIndicators
-from analysis import AnalysisSeriesMontly, StockPriceViz, request_data
+from analysis import DataAnalysis, AnalysisSeriesMontly, StockPriceViz, request_data
 import streamlit as st
 import pandas as pd
 
@@ -24,7 +24,7 @@ description = pd.DataFrame({'Poupança': ['Poupança: Rentabilidade no 1º dia d
 def main():
     st.set_page_config(layout='wide')
     indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-    option_view = ['Série Temporal', 'Candlestick', 'Histograma', 'Estatística Descritiva']
+    option_view = ['Série Temporal', 'Candlestick', 'Histograma', 'Estatística Descritiva', 'Correlação']
     option_view_indexes = ['Série Temporal', 'Correlação']
     st.title('Análise do Mercado Financeiro')
     st.sidebar.selectbox('País', ['Brasil'])
@@ -32,13 +32,14 @@ def main():
     indicator = st.sidebar.selectbox('Indicadores', indicators)
     # ============================Economics indices visualizations============================
     if indicator == 'Índices Econômicos':
-        st.subheader('Índices Econômicos Brasileiros')
         start_year = str(st.sidebar.selectbox('Ano inicial', sorted(data['date'].dt.year.unique(), reverse=True)))
         all = st.sidebar.checkbox('Selecionar todos')
         if all:
             indexer = st.sidebar.multiselect('Índice', indexers, default=indexers)
         else:
             indexer = st.sidebar.multiselect('Índice', indexers, default=['Poupança'])
+        # Data read
+        #economic_data = DataAnalysis(data, indexer)
         # Time series of indexers
         if indexer:
             # View options
@@ -46,11 +47,13 @@ def main():
             # Data range
             if indexer == 'Selecionar todos':
                 indexer = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-            analyze = AnalysisSeriesMontly(data, start_year, indexer)
+            analyze = AnalysisSeriesMontly(data=data, axis_y=indexer, start_date=start_year)
             if view == 'Série Temporal':
+                st.subheader('Série Temporal')
                 analyze.visualize_indicator()
                 analyze.acumulated()
             elif view == 'Correlação':
+                st.subheader('Correlação Linear')
                 analyze.correlation()
         else:
             st.write('Selecione um índice!')
@@ -64,7 +67,7 @@ def main():
             view = st.sidebar.selectbox('Gráfico', option_view)
             # Download data from Yahoo Finance
             stock_data = request_data(selected_tickers, start_date)
-            stock_viz = StockPriceViz(data=stock_data, tickers=selected_tickers)
+            stock_viz = StockPriceViz(stock_data, selected_tickers)
             if view == 'Candlestick':  
                 # Show selected visualization
                 st.subheader('Cotação de preço')
@@ -79,6 +82,9 @@ def main():
             elif view == 'Estatística Descritiva':
                 st.subheader('Estatística Descritiva')
                 stock_viz.descriptive_statistics()
+            elif view == 'Correlação':
+                st.subheader('Correlação Linear')
+                stock_viz.correlation()
         else:
             st.write('Selecione uma opção!')
     if indicator == 'Índices':
