@@ -25,7 +25,7 @@ def main():
     st.set_page_config(layout='wide')
     indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
     option_view = ['Série Temporal', 'Candlestick', 'Histograma', 'Estatística Descritiva', 'Correlação']
-    option_view_indexes = ['Série Temporal', 'Correlação']
+    option_view_indexes = ['Série Temporal', 'Histograma', 'Estatística Descritiva', 'Correlação']
     st.title('Análise do Mercado Financeiro')
     st.sidebar.selectbox('País', ['Brasil'])
     indicators = ['Índices Econômicos', 'Ações IBOVESPA']
@@ -52,6 +52,12 @@ def main():
                 st.subheader('Série Temporal')
                 analyze.visualize_indicator()
                 analyze.acumulated()
+            elif view == 'Histograma':
+                st.subheader('Distribuição')
+                analyze.histogram_view(indexer, 'indice', '%')
+            elif view == 'Estatística Descritiva':
+                st.subheader('Estatística Descritiva')
+                analyze.descriptive_statistics()
             elif view == 'Correlação':
                 st.subheader('Correlação Linear')
                 analyze.correlation()
@@ -77,8 +83,8 @@ def main():
                 stock_viz.time_series()
             elif view == 'Histograma':
                 # Show selected visualization
-                st.subheader('Distribuição da cotação do preço')
-                stock_viz.histogram_view()
+                st.subheader('Distribuição do preço de fechamento')
+                stock_viz.histogram_view('Close', 'company', 'R$')
             elif view == 'Estatística Descritiva':
                 st.subheader('Estatística Descritiva')
                 stock_viz.descriptive_statistics()

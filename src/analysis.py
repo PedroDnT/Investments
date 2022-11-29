@@ -48,6 +48,24 @@ class DataAnalysis:
         st.pyplot(fig)
 
 
+    def histogram_view(self, column: list, indicator: str, x_label: str):
+        '''
+        --> Show the stock price distribution
+        '''
+        if len(self._axis_y) > 1:
+            fig = px.histogram(self._data[column].melt(var_name=indicator), x='value', color=indicator)
+            fig.update_layout(
+                xaxis_title=x_label,
+                yaxis_title='Frequência')
+            st.plotly_chart(fig)
+        else:
+            fig = px.histogram(self._data, x=column)
+            fig.update_layout(
+                xaxis_title=x_label,
+                yaxis_title='Frequência')
+            st.plotly_chart(fig)
+
+    
 class AnalysisSeriesMontly(DataAnalysis):
     '''
     --> Analyzes the time series of the selected indicator(s)
@@ -91,6 +109,25 @@ class AnalysisSeriesMontly(DataAnalysis):
                         yaxis_title=self._y_label,
                         annotations=annotations)
         st.plotly_chart(fig, use_container_width=True)
+
+
+    def descriptive_statistics(self):
+        '''
+        --> Central tendency and dispersion statistics information
+        '''
+        if len(self._axis_y) > 1:
+            for ticker in self._axis_y:
+                df_stats = self._data[[ticker]].describe().T.round(2)
+                df_stats.columns = ['registros', 'média', 'desvio padrão', 'min', 'Q1', 'Q2', 'Q3', 'max']
+                df_stats['range'] = df_stats['max'] - df_stats['min']
+                df_stats = df_stats[['registros', 'min', 'max', 'range', 'média', 'desvio padrão', 'Q1', 'Q2', 'Q3']]
+                st.dataframe(df_stats.style.format('{:.2f}'))    
+        else:
+            df_stats = self._data[self._axis_y].describe().T.round(2)
+            df_stats.columns = ['registros', 'média', 'desvio padrão', 'min', 'Q1', 'Q2', 'Q3', 'max']
+            df_stats['range'] = df_stats['max'] - df_stats['min']
+            df_stats = df_stats[['registros', 'min', 'max', 'range', 'média', 'desvio padrão', 'Q1', 'Q2', 'Q3']]
+            st.dataframe(df_stats.style.format('{:.2f}'))
 
 
     def acumulated(self):
@@ -288,24 +325,6 @@ class StockPriceViz(DataAnalysis):
                                 yaxis_title='R$',
                                 height=550)
                 st.plotly_chart(fig, use_container_width=True)
-
-
-    def histogram_view(self):
-        '''
-        --> Show the stock price distribution
-        '''
-        if len(self._axis_y) > 1:
-            fig = px.histogram(self._data['Close'].melt(var_name='company'), x='value', color='company')
-            fig.update_layout(
-                xaxis_title='R$',
-                yaxis_title='Frequência')
-            st.plotly_chart(fig)
-        else:
-            fig = px.histogram(self._data, x='Close')
-            fig.update_layout(
-                xaxis_title='R$',
-                yaxis_title='Frequência')
-            st.plotly_chart(fig)    
 
 
     def descriptive_statistics(self):
