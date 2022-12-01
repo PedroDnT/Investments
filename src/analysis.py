@@ -53,10 +53,12 @@ class DataAnalysis:
         --> Show the stock price distribution
         '''
         if len(self._axis_y) > 1:
-            fig = px.histogram(self._data[column].melt(var_name=indicator), x='value', color=indicator)
+            fig = px.histogram(self._data[column].melt(var_name=indicator), x='value', color=indicator,
+                                opacity=0.8)
             fig.update_layout(
                 xaxis_title=x_label,
-                yaxis_title='Frequência')
+                yaxis_title='Frequência',
+                barmode='overlay')
             st.plotly_chart(fig)
         else:
             fig = px.histogram(self._data, x=column)
