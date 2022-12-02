@@ -79,8 +79,15 @@ def main():
                 st.subheader('Cotação de preço')
                 stock_viz.candlestick()
             if view == 'Série Temporal':
-                st.subheader('Histórico do preço de fechamento')
-                stock_viz.time_series()
+                normalization = st.sidebar.checkbox('Normalizar')
+                if normalization:
+                    st.subheader('Histórico do preço de fechamento normalizado')
+                    stock_viz.normalize_time_series()
+                    stock_viz.time_series()
+                    stock_viz.normalized_metric()
+                else:
+                    st.subheader('Histórico do preço de fechamento')
+                    stock_viz.time_series()
             elif view == 'Histograma':
                 # Show selected visualization
                 st.subheader('Distribuição do preço de fechamento')
@@ -97,6 +104,6 @@ def main():
         for index in indexer:
             st.text(description[index][0])
     st.markdown('[GitHub](https://github.com/MarcosRMG/Investimentos)')
-    st.markdown('Version 1.6')
+    st.markdown('Version 1.7')
 if __name__ == '__main__':
     main()

@@ -67,7 +67,36 @@ class DataAnalysis:
                 yaxis_title='Frequência')
             st.plotly_chart(fig)
 
-    
+
+    def normalize_time_series(self):
+        '''
+        --> Transform time series in normalized form
+
+        :param axis_y: Stocks series selected
+        '''
+        #data_slice = self._data.query('date >= @self._start_date')
+        for column in self._axis_y:
+            normalized = list()
+            for row in self._data[column]:
+                normalized.append(row / self._data[column].iloc[0])
+            self._data[column] = normalized
+
+
+    def normalized_metric(self):
+        '''
+        --> Print the metric referal to increase or decrease in the period of normalized time series
+
+        :param axis_y: Selected indicator
+        ''' 
+        dic = dict()
+        for column in self._axis_y:  
+            dic[column] = [round((self._data[column].iloc[-1] - self._data[column].iloc[0]), 2)]
+        df = pd.DataFrame(dic)
+        df = Styler(df, 2)
+        st.write('Crescimento relativo %')
+        st.dataframe(df)
+
+
 class AnalysisSeriesMontly(DataAnalysis):
     '''
     --> Analyzes the time series of the selected indicator(s)
@@ -145,8 +174,8 @@ class AnalysisSeriesMontly(DataAnalysis):
         st.write('Acumulado no período')
         df = Styler(df, 2)
         st.dataframe(df)  
-
     
+
 class AnalysisSerieDaily:
     '''
     --> Analyzes the time series of the selected indicator(s)
@@ -218,6 +247,21 @@ class AnalysisSerieDaily:
         self._data_normalized.reset_index(inplace=True)
 
 
+    def normalized_metric(self, axis_y=None):
+        '''
+        --> Print the metric referal to increase or decrease in the period of normalized time series
+
+        :param axis_y: Selected indicator
+        ''' 
+        dic = dict()
+        for column in axis_y:  
+            dic[column] = [round((self._data[column].iloc[-1] - self._data[column].iloc[0]) * 100, 0)]
+        df = pd.DataFrame(dic)
+        df = Styler(df, 0)
+        st.write('Valorization %')
+        st.dataframe(df)
+
+
     def visualize_serie_normalized(self, axis_y=None, y_label='X'):
         '''
         --> Visualize time series normalized
@@ -261,7 +305,6 @@ class AnalysisSerieDaily:
     def normalized_metric(self, axis_y=None):
         '''
         --> Print the metric referal to increase or decrease in the period of normalized time series
-
         :param axis_y: Selected indicator
         ''' 
         dic = dict()
@@ -292,12 +335,13 @@ class StockPriceViz(DataAnalysis):
     '''
     --> Catch data from Yahoo Finance to analysis
     '''
-    def __init__(self, data, axis_y):
+    def __init__(self, data, axis_y, data_norm=pd.DataFrame):
         '''
         :param data: Requested data
         :param tickers: Selected company tickers to download data
         '''
         super().__init__(data, axis_y)
+        self._data_norm = data_norm
 
     
     def candlestick(self):
@@ -352,8 +396,12 @@ class StockPriceViz(DataAnalysis):
         '''
         --> Show the historical series of selected tickers
         '''
+        if self._data_norm.empty:
+            data = self._data.copy()
+        else:
+            data = self._data_norm.copy()
         if len(self._axis_y) > 1:
-            data = self._data[['Close']].melt(ignore_index=False, col_level=1)
+            data = data[['Close']].melt(ignore_index=False, col_level=1)
             fig = px.line(data, x=data.index, y=data['value'], color='variable')
             fig.update_layout(
                 xaxis_title='Data',
@@ -361,12 +409,55 @@ class StockPriceViz(DataAnalysis):
             )
             st.plotly_chart(fig)    
         else:
-            fig = px.line(self._data, x=self._data.index, y='Close')
+            fig = px.line(data, x=data.index, y='Close')
             fig.update_layout(
                 xaxis_title='Data',
                 yaxis_title='R$'
             )
             st.plotly_chart(fig)
+
+
+    def normalize_time_series(self):
+        '''
+        --> Transform time series in normalized form
+
+        :param axis_y: Stocks series selected
+        '''
+        self._data_norm = self._data.copy()
+        if len(self._axis_y) > 1:
+            for column in self._axis_y:
+                normalized = list()
+                for row in self._data_norm['Close'][column]:
+                    normalized.append(row / self._data_norm['Close'][column].iloc[0])
+                self._data_norm.loc[:, ('Close', column)] = normalized
+        else:
+            normalized = list()
+            for row in self._data_norm['Close']:
+                normalized.append(row / self._data_norm['Close'].iloc[0])
+            self._data_norm['Close'] = normalized
+
+
+    def normalized_metric(self):
+        '''
+        --> Print the metric referal to increase or decrease in the period of normalized time series
+
+        :param axis_y: Selected indicator
+        ''' 
+        if len(self._axis_y) > 1:
+            dic = dict()
+            for column in self._axis_y:  
+                dic[column] = [round((self._data_norm['Close'][column].iloc[-1] - self._data_norm['Close'][column].iloc[0]), 2)]
+            df = pd.DataFrame(dic)
+            df = Styler(df, 2)
+            st.write('Valorização no período')
+            st.dataframe(df)
+        else:
+            dic = dict()
+            dic['Close'] = [round((self._data_norm['Close'].iloc[-1] - self._data_norm['Close'].iloc[0]), 2)]
+            df = pd.DataFrame(dic)
+            df = Styler(df, 2)
+            st.write('Valorização no período')
+            st.dataframe(df)
     
 
 @st.cache    
