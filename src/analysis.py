@@ -8,6 +8,7 @@ from pandas.io.formats.style import Styler
 import yfinance as yf
 from datetime import date
 import plotly.graph_objects as go
+from statsmodels.tsa.seasonal import seasonal_decompose
 
 
 class DataAnalysis:
@@ -85,8 +86,6 @@ class DataAnalysis:
     def normalized_metric(self):
         '''
         --> Print the metric referal to increase or decrease in the period of normalized time series
-
-        :param axis_y: Selected indicator
         ''' 
         dic = dict()
         for column in self._axis_y:  
@@ -99,7 +98,7 @@ class DataAnalysis:
 
 class AnalysisSeriesMontly(DataAnalysis):
     '''
-    --> Analyzes the time series of the selected indicator(s)
+    Analyzes the time series of the selected indicator(s)
     '''
     def __init__(self, data, axis_y, start_date, axis_x='date', x_label='', y_label='%'):
         '''
@@ -123,8 +122,7 @@ class AnalysisSeriesMontly(DataAnalysis):
         '''
         --> Visualize the selected indicator
         '''
-        # Selected data
-        self._data = self._data.query('date >= @self._start_date') 
+        # Selected data 
         data_melt = self._data.melt(id_vars='date', value_vars=self._axis_y, var_name='indexers', value_name='%')
         # Visualization
         fig = px.line(data_melt, 'date', '%', color='indexers')
@@ -173,167 +171,40 @@ class AnalysisSeriesMontly(DataAnalysis):
         df = pd.DataFrame(dic)
         st.write('Acumulado no período')
         df = Styler(df, 2)
-        st.dataframe(df)  
-    
-
-class AnalysisSerieDaily:
-    '''
-    --> Analyzes the time series of the selected indicator(s)
-    '''
-    def __init__(self, data=None, start_date=None, axis_x='data', x_label='', y_label='R$', data_normalized=pd.DataFrame, 
-                data_melt=pd.DataFrame, data_slice=pd.DataFrame):
-        '''
-        :param data: DataFrame Pandas of time series with daily indicators
-        :param data_normalized: Pandas DataFrame with all time series divided by first element 
-        :param data_melt: Pandas DataFrame with time series with selected tickers in melt format
-        :param start_data: Initial date of time series
-        :param eixo_x: X axis of time series 
-        :param x_label: Label x of serie
-        :param y_label: Label y of serie
-        :param data_slice: Selected data in filters
-        '''
-        self._data = data
-        self._data_normalized = data_normalized
-        self._data_melt = data_melt
-        self._start_date = start_date
-        self._axis_x = axis_x
-        self._x_label = x_label
-        self._y_label = y_label
-        self._data_slice = data_slice
+        st.dataframe(df)
 
 
-    def visualize_indicator_daily(self, axis_y=None):
+    def serie_decomposition(self):
         '''
-        --> Visualize selected indicator
-
-        :param indicator: Selected indicator
-        '''
-        # Selected data
-        self._data_slice = self._data.query('date >= @self._start_date')
-        self._data_melt = self._data_slice.melt(id_vars='date', value_vars=axis_y, var_name='indexers', value_name='R$')
-        # Visualization
-        fig = px.line(self._data_melt, 'date', 'R$', color='indexers')
-        # Data Souce
-        annotations = list()
-        annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
-                              xanchor='center', yanchor='top',
-                              text='Source: Yahoo Finance',
-                              font=dict(family='Arial',
-                                        size=12,
-                                        color='rgb(150,150,150)'),
-                              showarrow=False))
-        fig.update_layout(xaxis_title=self._x_label,
-                        yaxis_title=self._y_label,
-                        annotations=annotations)
-        st.plotly_chart(fig, use_container_width=True)
-
-    
-    def normalize_time_series(self, axis_y=None):
-        '''
-        --> Transform time series in normalized form
-
-        :param axis_y: Stocks series selected
-        '''
-        data_slice = self._data.query('date >= @self._start_date')
-        for column in data_slice[axis_y]:
-            normalized = list()
-            for row in data_slice[column]:
-                normalized.append(row / data_slice[column].iloc[0])
-            if self._data_normalized.empty:
-                self._data_normalized = pd.DataFrame(index=data_slice['date'], data=normalized, columns=[column])
+        Seasonality and trend of time series
+        '''  
+        try:
+            if len(self._axis_y) > 1:
+                st.write('Selecione apenas um índice para essa visualização')
             else:
-                _ = pd.DataFrame(index=data_slice['date'], data=normalized, columns=[column])
-                self._data_normalized = pd.merge(self._data_normalized, _, on='date')
-        self._data_normalized.reset_index(inplace=True)
-
-
-    def normalized_metric(self, axis_y=None):
-        '''
-        --> Print the metric referal to increase or decrease in the period of normalized time series
-
-        :param axis_y: Selected indicator
-        ''' 
-        dic = dict()
-        for column in axis_y:  
-            dic[column] = [round((self._data[column].iloc[-1] - self._data[column].iloc[0]) * 100, 0)]
-        df = pd.DataFrame(dic)
-        df = Styler(df, 0)
-        st.write('Valorization %')
-        st.dataframe(df)
-
-
-    def visualize_serie_normalized(self, axis_y=None, y_label='X'):
-        '''
-        --> Visualize time series normalized
-
-        :param indicator: Selected indicator
-        '''
-        if len(axis_y) == 1:
-            data_melt = self._data_normalized.melt(id_vars='date', var_name='indexers', value_name='x')
-            # Visualization
-            fig = px.line(data_melt, 'date', 'x', color='indexers')
-            annotations = list()
-            annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
-                              xanchor='center', yanchor='top',
-                              text='Source: Yahoo Finance',
-                              font=dict(family='Arial',
-                                        size=12,
-                                        color='rgb(150,150,150)'),
-                              showarrow=False))
-            fig.update_layout(xaxis_title=self._x_label,
-                            yaxis_title=y_label,
-                            annotations=annotations)
-            st.plotly_chart(fig, use_container_width=True)
-        elif len(axis_y) > 1:
-            data_melt = self._data_normalized.melt(id_vars='date', var_name='indexers', value_name='x')
-            # Visualization
-            fig = px.line(data_melt, 'date', 'x', color='indexers')
-            annotations = list()
-            annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
-                              xanchor='center', yanchor='top',
-                              text='Source: Yahoo Finance',
-                              font=dict(family='Arial',
-                                        size=12,
-                                        color='rgb(150,150,150)'),
-                              showarrow=False))
-            fig.update_layout(xaxis_title=self._x_label,
-                            yaxis_title=y_label,
-                            annotations=annotations)
-            st.plotly_chart(fig, use_container_width=True)
-
-
-    def normalized_metric(self, axis_y=None):
-        '''
-        --> Print the metric referal to increase or decrease in the period of normalized time series
-        :param axis_y: Selected indicator
-        ''' 
-        dic = dict()
-        for stocks in axis_y:  
-            dic[stocks] = [round((self._data_normalized[stocks].iloc[-1] - self._data_normalized[stocks].iloc[0]) * 100, 0)]
-        df = pd.DataFrame(dic)
-        df = Styler(df, 0)
-        st.write('Valorization %')
-        st.dataframe(df)
-
+                # Set date as index
+                data = self._data.set_index('date')
+                data.index = pd.to_datetime(data.index) 
+                # Decompose time serie with statsmodels
+                dec = seasonal_decompose(data[self._axis_y], period=12)
+                # Create DataFrame of seasonality and trend
+                df_dec = pd.DataFrame({'date': dec.seasonal.index, self._axis_y[0]: dec.seasonal.values})
+                df_tred = pd.DataFrame({'date': dec.trend.index, self._axis_y[0]: dec.trend.values})
+                # Show seasonal result
+                seasonal_fig = px.line(df_dec, x='date', y=self._axis_y[0], title=f'Sazonalidade {self._axis_y[0]}')
+                seasonal_fig.update_layout(xaxis_title='Data', yaxis_title='')
+                st.plotly_chart(seasonal_fig)
+                # Show trend result
+                tred_fig = px.line(df_tred, x='date', y=self._axis_y[0], title=f'Tendênica {self._axis_y[0]}')
+                tred_fig.update_layout(xaxis_title='Data', yaxis_title='')
+                st.plotly_chart(tred_fig) 
+        except:
+            st.write('Selecione ao menos 2 anos completos para essa visualização!')
     
-    def valorization_metric(self, axis_y=None):
-        '''
-        --> Print the metric referal to increase or decrease in the period of normalized time series
-
-        :param axis_y: Selected indicator
-        ''' 
-        dic = dict()
-        for stocks in axis_y:  
-            dic[stocks] = [round(self._data_slice[stocks].iloc[-1] - self._data_slice[stocks].iloc[0], 1)]
-        df = pd.DataFrame(dic)
-        df = Styler(df, 1)
-        st.write('Valorization R$')
-        st.dataframe(df)
-
-    
+ 
 class StockPriceViz(DataAnalysis):
     '''
-    --> Catch data from Yahoo Finance to analysis
+    Data visualization of Yahoo Finance historical data
     '''
     def __init__(self, data, axis_y, data_norm=pd.DataFrame):
         '''
@@ -458,9 +329,50 @@ class StockPriceViz(DataAnalysis):
             df = Styler(df, 2)
             st.write('Valorização no período')
             st.dataframe(df)
+
+
+    def serie_decomposition(self):
+        '''
+        Seasonality and trend of time series
+        '''  
+        try:
+            if len(self._axis_y) > 1:
+                st.write('Selecione apenas um índice para essa visualização')
+            else: 
+                # Agregate data by mean/ month 
+                data_month = self._data[['Close']].groupby(pd.Grouper(freq="M")).mean()
+                # Decompose time serie with statsmodels
+                dec = seasonal_decompose(data_month, period=12)
+                # Create DataFrame of seasonality and trend
+                df_dec = pd.DataFrame({'date': dec.seasonal.index, self._axis_y[0]: dec.seasonal.values})
+                df_tred = pd.DataFrame({'date': dec.trend.index, self._axis_y[0]: dec.trend.values})
+                # Show seasonal result
+                seasonal_fig = px.line(df_dec, x='date', y=self._axis_y[0], title=f'Sazonalidade {self._axis_y[0]}')
+                seasonal_fig.update_layout(xaxis_title='Data', yaxis_title='')
+                st.plotly_chart(seasonal_fig)
+                # Show trend result
+                tred_fig = px.line(df_tred, x='date', y=self._axis_y[0], title=f'Tendênica {self._axis_y[0]}')
+                tred_fig.update_layout(xaxis_title='Data', yaxis_title='')
+                st.plotly_chart(tred_fig) 
+                st.write('Dados agregados por média mês!')
+        except:
+            st.write('Selecione ao menos 2 anos completos para essa visualização!')
     
 
 @st.cache    
-def request_data(selected_tickers, start_date):
-        today = date.today()
-        return yf.download(tickers=selected_tickers, start=start_date, end=today)
+def request_data(selected_tickers: list, start_date: str):
+    '''
+    Download historical financial data from Yahoo Finance about ticker negatiation 
+
+    Parameters: selected_tickers : List of string 
+                    Company tickers selected to download
+    
+                start_date: String
+                    Initial date to download historical data
+
+    Returns: DataFrame
+                Pandas DataFrame with Open, High, Low, Close, Adj Close and Volume columns about selected tickers 
+                market negatiation
+    '''
+    today = date.today()
+    return yf.download(tickers=selected_tickers, start=start_date, end=today)

@@ -24,8 +24,8 @@ description = pd.DataFrame({'Poupança': ['Poupança: Rentabilidade no 1º dia d
 def main():
     st.set_page_config(layout='wide')
     indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-    option_view = ['Série Temporal', 'Candlestick', 'Histograma', 'Estatística Descritiva', 'Correlação']
-    option_view_indexes = ['Série Temporal', 'Histograma', 'Estatística Descritiva', 'Correlação']
+    option_view = ['Série Temporal', 'Candlestick', 'Decomposição', 'Histograma', 'Estatística Descritiva', 'Correlação']
+    option_view_indexes = ['Série Temporal', 'Decomposição', 'Histograma', 'Estatística Descritiva', 'Correlação']
     st.title('Análise do Mercado Financeiro')
     st.sidebar.selectbox('País', ['Brasil'])
     indicators = ['Índices Econômicos', 'Ações IBOVESPA']
@@ -52,6 +52,9 @@ def main():
                 st.subheader('Série Temporal')
                 analyze.visualize_indicator()
                 analyze.acumulated()
+            if view == 'Decomposição':
+                st.subheader('Sazonalidade e Tendência')
+                analyze.serie_decomposition()
             elif view == 'Histograma':
                 st.subheader('Distribuição')
                 analyze.histogram_view(indexer, 'indice', '%')
@@ -88,6 +91,9 @@ def main():
                 else:
                     st.subheader('Histórico do preço de fechamento')
                     stock_viz.time_series()
+            if view == 'Decomposição':
+                st.subheader('Sazonalidade e Tendência')
+                stock_viz.serie_decomposition()
             elif view == 'Histograma':
                 # Show selected visualization
                 st.subheader('Distribuição do preço de fechamento')
