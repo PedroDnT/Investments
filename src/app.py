@@ -32,9 +32,9 @@ def main():
     indicator = st.sidebar.selectbox('Indicadores', indicators)
     # ============================Economics indices visualizations============================
     if indicator == 'Índices Econômicos':
-        start_year = str(st.sidebar.selectbox('Ano inicial', sorted(data['date'].dt.year.unique(), reverse=True)))
-        all = st.sidebar.checkbox('Selecionar todos')
-        if all:
+        # All indexers options
+        all_ = st.sidebar.checkbox('Selecionar todos')
+        if all_:
             indexer = st.sidebar.multiselect('Índice', indexers, default=indexers)
         else:
             indexer = st.sidebar.multiselect('Índice', indexers, default=['Poupança'])
@@ -44,10 +44,18 @@ def main():
         if indexer:
             # View options
             view = st.sidebar.selectbox('Gráfico', option_view_indexes)
+            # Define start year
+            if view == 'Decomposição':
+                start_year = str(st.sidebar.selectbox('Ano inicial', sorted(data['date'].dt.year.unique()[:-2], reverse=True)))
+            else:
+                start_year = str(st.sidebar.selectbox('Ano inicial', sorted(data['date'].dt.year.unique(), reverse=True)))
             # Data range
             if indexer == 'Selecionar todos':
                 indexer = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-            analyze = AnalysisSeriesMontly(data=data, axis_y=indexer, start_date=start_year)
+            if view == 'Decomposição':
+                analyze = AnalysisSeriesMontly(data=data, axis_y=indexer, start_date=start_year)
+            else:
+                analyze = AnalysisSeriesMontly(data=data, axis_y=indexer, start_date=start_year)
             if view == 'Série Temporal':
                 st.subheader('Série Temporal')
                 analyze.visualize_indicator()
@@ -68,12 +76,16 @@ def main():
             st.write('Selecione um índice!')
     # ============================Stocks prices visualizations============================
     elif indicator == 'Ações IBOVESPA':
-        start_date = str(st.sidebar.date_input('Data inicial', datetime(2022, 1, 1)))
         visualize_stocks = st.sidebar.multiselect('Stocks', carteira['código'].values, default='AMBEV S/A')
         selected_tickers = carteira[carteira['código'].isin(visualize_stocks)]['index'].tolist()
         if visualize_stocks:
             # Select the visualization type option
             view = st.sidebar.selectbox('Gráfico', option_view)
+            # Define start date
+            if view == 'Decomposição':
+                start_date = str(st.sidebar.date_input('Data inicial', datetime(2021, 1, 1)))
+            else:
+                start_date = str(st.sidebar.date_input('Data inicial', datetime(2022, 1, 1)))
             # Download data from Yahoo Finance
             stock_data = request_data(selected_tickers, start_date)
             stock_viz = StockPriceViz(stock_data, selected_tickers)
