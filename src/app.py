@@ -15,17 +15,21 @@ data.clean_data_bcb()
 data.clean_data_ibge()
 data = data.data_frame_indicators()
 # Indexers description
-description = pd.DataFrame({'Poupança': ['Poupança: Rentabilidade no 1º dia do mês (BCB-Demab)'],
-                            'CDI': ['CDI: Taxa de Juros Acumulada Mensal (BCB-Demab)'],
-                            'IPCA': ['IPCA: Abrange famílias com renda de 1 a 40 salários mínimos (IBGE)'],
-                            'INPC': ['INPC: Abrange famílias com renda de 1 a 5 salários mínimos (IBGE)'],
-                            'Selic': ['Selic: Taxa de Juros Acumulada Mensal (BCB-Demab)']})
+description = pd.DataFrame({'Indicador': ['Rentabilidade no 1º dia do mês (BCB-Demab)', 
+                                        'Taxa de Juros Acumulada Mensal (BCB-Demab)', 
+                                        'Abrange famílias com renda de 1 a 40 salários mínimos (IBGE)',
+                                        'Abrange famílias com renda de 1 a 5 salários mínimos (IBGE)',
+                                        'Taxa de Juros Acumulada Mensal (BCB-Demab)']}, 
+                                        index=['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic'])
+
 
 def main():
     st.set_page_config(layout='wide')
     indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-    option_view = ['Série Temporal', 'Candlestick', 'Decomposição', 'Histograma', 'Estatística Descritiva', 'Correlação']
-    option_view_indexes = ['Série Temporal', 'Decomposição', 'Histograma', 'Estatística Descritiva', 'Correlação']
+    option_view = ['Série Temporal', 'Candlestick', 'Decomposição', 'Histograma', 'Boxplot', 'Estatística Descritiva', 
+                    'Correlação']
+    option_view_indexes = ['Série Temporal', 'Decomposição', 'Histograma', 'Boxplot', 'Estatística Descritiva', 
+                            'Correlação']
     st.title('Análise do Mercado Financeiro')
     st.sidebar.selectbox('País', ['Brasil'])
     indicators = ['Índices Econômicos', 'Ações IBOVESPA']
@@ -66,12 +70,17 @@ def main():
             elif view == 'Histograma':
                 st.subheader('Distribuição')
                 analyze.histogram_view(indexer, 'indice', '%')
+            elif view == 'Boxplot':
+                st.subheader('Boxplot')
+                analyze.boxplot_view(indexer, y_label='%')
             elif view == 'Estatística Descritiva':
                 st.subheader('Estatística Descritiva')
                 analyze.descriptive_statistics()
             elif view == 'Correlação':
                 st.subheader('Correlação Linear')
                 analyze.correlation()
+            # Indicator source description
+            st.table(description[description.index.isin(indexer)])    
         else:
             st.write('Selecione um índice!')
     # ============================Stocks prices visualizations============================
@@ -96,20 +105,24 @@ def main():
             if view == 'Série Temporal':
                 normalization = st.sidebar.checkbox('Normalizar')
                 if normalization:
-                    st.subheader('Histórico do preço de fechamento normalizado')
+                    st.subheader('Preço de fechamento normalizado')
                     stock_viz.normalize_time_series()
                     stock_viz.time_series()
                     stock_viz.normalized_metric()
                 else:
-                    st.subheader('Histórico do preço de fechamento')
+                    st.subheader('Preço de fechamento')
                     stock_viz.time_series()
             if view == 'Decomposição':
                 st.subheader('Sazonalidade e Tendência')
                 stock_viz.serie_decomposition()
             elif view == 'Histograma':
                 # Show selected visualization
-                st.subheader('Distribuição do preço de fechamento')
+                st.subheader('Preço de fechamento')
                 stock_viz.histogram_view('Close', 'company', 'R$')
+            elif view == 'Boxplot':
+                # Show selected visualization
+                st.subheader('Preço de fechamento')
+                stock_viz.boxplot_view(indicators=selected_tickers, y_label='R$')
             elif view == 'Estatística Descritiva':
                 st.subheader('Estatística Descritiva')
                 stock_viz.descriptive_statistics()
@@ -122,6 +135,6 @@ def main():
         for index in indexer:
             st.text(description[index][0])
     st.markdown('[GitHub](https://github.com/MarcosRMG/Investimentos)')
-    st.markdown('Version 1.7')
+    st.markdown('Version 1.7.1')
 if __name__ == '__main__':
     main()

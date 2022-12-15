@@ -51,7 +51,7 @@ class DataAnalysis:
 
     def histogram_view(self, column: list, indicator: str, x_label: str):
         '''
-        --> Show the stock price distribution
+        --> Show financial market indicator statistical distribution
         '''
         if len(self._axis_y) > 1:
             fig = px.histogram(self._data[column].melt(var_name=indicator), x='value', color=indicator,
@@ -157,6 +157,17 @@ class AnalysisSeriesMontly(DataAnalysis):
             df_stats['range'] = df_stats['max'] - df_stats['min']
             df_stats = df_stats[['registros', 'min', 'max', 'range', 'média', 'desvio padrão', 'Q1', 'Q2', 'Q3']]
             st.dataframe(df_stats.style.format('{:.2f}'))
+
+
+    def boxplot_view(self, indicators: list, y_label: str):
+        '''
+        --> Show financial market indicator with Boxplot
+        '''
+        fig = px.box(self._data, y=indicators)
+        fig.update_layout(
+            xaxis_title='',
+            yaxis_title=y_label)
+        st.plotly_chart(fig)
 
 
     def acumulated(self):
@@ -285,6 +296,24 @@ class StockPriceViz(DataAnalysis):
                 xaxis_title='Data',
                 yaxis_title='R$'
             )
+            st.plotly_chart(fig)
+
+
+    def boxplot_view(self, indicators: list, y_label: str):
+        '''
+        --> Show financial market indicator with Boxplot
+        '''
+        if len(self._axis_y) > 1:
+            fig = px.box(self._data['Close'], y=indicators)
+            fig.update_layout(
+                xaxis_title='',
+                yaxis_title=y_label)
+            st.plotly_chart(fig)
+        else:
+            fig = px.box(self._data, y='Close')
+            fig.update_layout(
+                xaxis_title=indicators[0],
+                yaxis_title=y_label)
             st.plotly_chart(fig)
 
 
