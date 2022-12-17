@@ -69,7 +69,7 @@ def main():
                 analyze.serie_decomposition()
             elif view == 'Histograma':
                 st.subheader('Distribuição')
-                analyze.histogram_view(indexer, 'indice', '%')
+                analyze.histogram_view(indexer, '%')
             elif view == 'Boxplot':
                 st.subheader('Boxplot')
                 analyze.boxplot_view(indexer, y_label='%')
@@ -118,7 +118,7 @@ def main():
             elif view == 'Histograma':
                 # Show selected visualization
                 st.subheader('Preço de fechamento')
-                stock_viz.histogram_view('Close', 'company', 'R$')
+                stock_viz.histogram_view(selected_tickers, 'R$')
             elif view == 'Boxplot':
                 # Show selected visualization
                 st.subheader('Preço de fechamento')
@@ -134,7 +134,9 @@ def main():
     if indicator == 'Índices':
         for index in indexer:
             st.text(description[index][0])
-    st.markdown('[GitHub](https://github.com/MarcosRMG/Investimentos)')
+    st.markdown('[GitHub](https://github.com/MarcosRMG/Investments)')
     st.markdown('Version 1.7.1')
+
+    
 if __name__ == '__main__':
     main()

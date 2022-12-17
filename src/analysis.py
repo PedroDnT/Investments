@@ -28,46 +28,23 @@ class DataAnalysis:
         '''
         --> Show the matrix correlation of selected indexes
         '''
-        # Correlation calc
-        try:
-            df_corr = self._data[self._axis_y].corr().round(1)
-        except:
-            # Stock price with one ticker selected
-            df_corr = self._data[['Close']].corr().round(1)    
+        # Correlation calc    
+        if len(self._axis_y) <= 1:
+            st.write('Selecione ao menos dois índices!')
+        else: 
+            try:
+                df_corr = self._data[self._axis_y].corr().round(1)
+            except:
+                # Stock price with one ticker selected
+                df_corr = self._data['Close'].corr().round(1)  
+            # Mask to matrix
+            mask = np.zeros_like(df_corr, dtype=bool)
+            mask[np.triu_indices_from(mask)] = True
+            # Viz
+            df_corr_viz = df_corr.mask(mask).dropna(how='all').dropna('columns', how='all')
+            fig = px.imshow(df_corr_viz, text_auto=True)
+            st.plotly_chart(fig)
             
-        # Mask to matrix
-        mask = np.zeros_like(df_corr)
-        mask[np.triu_indices_from(mask)] = True
-        # Viz seaborn
-        fig, ax = plt.subplots()
-        sns.set(rc={"figure.figsize":(4, 3)}, font_scale=0.5)
-        ax = sns.heatmap(df_corr, annot=True, mask=mask, annot_kws={"size":5})
-        plt.xticks(rotation=45, fontsize=5)
-        plt.xlabel('')
-        plt.ylabel('')
-        plt.yticks(fontsize=5)
-        st.pyplot(fig)
-
-
-    def histogram_view(self, column: list, indicator: str, x_label: str):
-        '''
-        --> Show financial market indicator statistical distribution
-        '''
-        if len(self._axis_y) > 1:
-            fig = px.histogram(self._data[column].melt(var_name=indicator), x='value', color=indicator,
-                                opacity=0.8)
-            fig.update_layout(
-                xaxis_title=x_label,
-                yaxis_title='Frequência',
-                barmode='overlay')
-            st.plotly_chart(fig)
-        else:
-            fig = px.histogram(self._data, x=column)
-            fig.update_layout(
-                xaxis_title=x_label,
-                yaxis_title='Frequência')
-            st.plotly_chart(fig)
-
 
     def normalize_time_series(self):
         '''
@@ -157,6 +134,17 @@ class AnalysisSeriesMontly(DataAnalysis):
             df_stats['range'] = df_stats['max'] - df_stats['min']
             df_stats = df_stats[['registros', 'min', 'max', 'range', 'média', 'desvio padrão', 'Q1', 'Q2', 'Q3']]
             st.dataframe(df_stats.style.format('{:.2f}'))
+
+
+    def histogram_view(self, indicators: list, x_label: str):
+        '''
+        --> Show financial market indicator statistical distribution
+        '''
+        fig = px.histogram(self._data, x=indicators)
+        fig.update_layout(
+            xaxis_title=x_label,
+            yaxis_title='Frequência')
+        st.plotly_chart(fig)
 
 
     def boxplot_view(self, indicators: list, y_label: str):
@@ -296,6 +284,24 @@ class StockPriceViz(DataAnalysis):
                 xaxis_title='Data',
                 yaxis_title='R$'
             )
+            st.plotly_chart(fig)
+
+
+    def histogram_view(self, indicators: list, x_label: str):
+        '''
+        --> Show financial market indicator statistical distribution
+        '''
+        if len(self._axis_y) > 1:
+            fig = px.histogram(self._data['Close'], x=indicators)
+            fig.update_layout(
+                xaxis_title=x_label,
+                yaxis_title='')
+            st.plotly_chart(fig)
+        else:
+            fig = px.histogram(self._data, x='Close')
+            fig.update_layout(
+                xaxis_title=indicators[0],
+                yaxis_title='')
             st.plotly_chart(fig)
 
 
