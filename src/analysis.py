@@ -98,11 +98,9 @@ class AnalysisSeriesMontly(DataAnalysis):
     def visualize_indicator(self):
         '''
         --> Visualize the selected indicator
-        '''
-        # Selected data 
-        data_melt = self._data.melt(id_vars='date', value_vars=self._axis_y, var_name='indexers', value_name='%')
+        ''' 
         # Visualization
-        fig = px.line(data_melt, 'date', '%', color='indexers')
+        fig = px.line(self._data, x='date', y=self._axis_y)
         annotations = list()
         annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
                               xanchor='center', yanchor='top',
@@ -271,8 +269,7 @@ class StockPriceViz(DataAnalysis):
         else:
             data = self._data_norm.copy()
         if len(self._axis_y) > 1:
-            data = data[['Close']].melt(ignore_index=False, col_level=1)
-            fig = px.line(data, x=data.index, y=data['value'], color='variable')
+            fig = px.line(data['Close'], x=data.index, y=self._axis_y)
             fig.update_layout(
                 xaxis_title='Data',
                 yaxis_title='R$'
