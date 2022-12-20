@@ -28,9 +28,9 @@ def main():
     indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
     option_view = ['Série Temporal', 'Candlestick', 'Decomposição', 'Histograma', 'Boxplot', 'Estatística Descritiva', 
                     'Correlação']
-    option_view_indexes = ['Série Temporal', 'Decomposição', 'Histograma', 'Boxplot', 'Estatística Descritiva', 
+    option_view_indexes = ['Série Temporal', 'Decomposição', 'Histograma', 'Boxplot', 'Barplot', 'Estatística Descritiva', 
                             'Correlação']
-    st.title('Análise do Mercado Financeiro')
+    st.title('Mercado Financeiro')
     st.sidebar.selectbox('País', ['Brasil'])
     indicators = ['Índices Econômicos', 'Ações IBOVESPA']
     indicator = st.sidebar.selectbox('Indicadores', indicators)
@@ -69,10 +69,13 @@ def main():
                 analyze.serie_decomposition()
             elif view == 'Histograma':
                 st.subheader('Distribuição')
-                analyze.histogram_view(indexer, '%')
+                analyze.histogram_view(indexer)
             elif view == 'Boxplot':
                 st.subheader('Boxplot')
-                analyze.boxplot_view(indexer, y_label='%')
+                analyze.boxplot_view(indexer)
+            elif view == 'Barplot':
+                st.subheader('Barplot')
+                analyze.barplot_view(indexer)
             elif view == 'Estatística Descritiva':
                 st.subheader('Estatística Descritiva')
                 analyze.descriptive_statistics()
@@ -135,7 +138,7 @@ def main():
         for index in indexer:
             st.text(description[index][0])
     st.markdown('[GitHub](https://github.com/MarcosRMG/Investments)')
-    st.markdown('Version 1.7.1')
+    st.markdown('Version 1.7.2')
 
     
 if __name__ == '__main__':

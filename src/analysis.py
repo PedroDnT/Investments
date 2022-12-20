@@ -134,25 +134,39 @@ class AnalysisSeriesMontly(DataAnalysis):
             st.dataframe(df_stats.style.format('{:.2f}'))
 
 
-    def histogram_view(self, indicators: list, x_label: str):
+    def histogram_view(self, indicators: list):
         '''
         --> Show financial market indicator statistical distribution
         '''
         fig = px.histogram(self._data, x=indicators)
         fig.update_layout(
-            xaxis_title=x_label,
+            xaxis_title='%',
             yaxis_title='Frequência')
         st.plotly_chart(fig)
 
 
-    def boxplot_view(self, indicators: list, y_label: str):
+    def boxplot_view(self, indicators: list):
         '''
         --> Show financial market indicator with Boxplot
         '''
         fig = px.box(self._data, y=indicators)
         fig.update_layout(
             xaxis_title='',
-            yaxis_title=y_label)
+            yaxis_title=self._y_label)
+        st.plotly_chart(fig)
+
+
+    def barplot_view(self, indicators):
+        '''
+        --> Show financial market indicator with Barplot by year
+        '''
+        data = self._data.copy()
+        data['year'] = data['date'].dt.year
+        fig = px.bar(data.groupby('year', as_index=False).sum(numeric_only=True), x='year', y=indicators, barmode='group')
+        fig.update_layout(
+            xaxis_title='Ano',
+            yaxis_title=self._y_label,
+            xaxis=dict(type='category'))
         st.plotly_chart(fig)
 
 
