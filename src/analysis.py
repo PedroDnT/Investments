@@ -52,7 +52,6 @@ class DataAnalysis:
 
         :param axis_y: Stocks series selected
         '''
-        #data_slice = self._data.query('date >= @self._start_date')
         for column in self._axis_y:
             normalized = list()
             for row in self._data[column]:
@@ -134,35 +133,36 @@ class AnalysisSeriesMontly(DataAnalysis):
             st.dataframe(df_stats.style.format('{:.2f}'))
 
 
-    def histogram_view(self, indicators: list):
+    def histogram_view(self):
         '''
         --> Show financial market indicator statistical distribution
         '''
-        fig = px.histogram(self._data, x=indicators)
+        fig = px.histogram(self._data, x=self._axis_y)
         fig.update_layout(
             xaxis_title='%',
             yaxis_title='Frequência')
         st.plotly_chart(fig)
 
 
-    def boxplot_view(self, indicators: list):
+    def boxplot_view(self):
         '''
         --> Show financial market indicator with Boxplot
         '''
-        fig = px.box(self._data, y=indicators)
+        fig = px.box(self._data, y=self._axis_y)
         fig.update_layout(
             xaxis_title='',
             yaxis_title=self._y_label)
         st.plotly_chart(fig)
 
 
-    def barplot_view(self, indicators):
+    def barplot_view(self):
         '''
         --> Show financial market indicator with Barplot by year
         '''
         data = self._data.copy()
         data['year'] = data['date'].dt.year
-        fig = px.bar(data.groupby('year', as_index=False).sum(numeric_only=True), x='year', y=indicators, barmode='group')
+        fig = px.bar(data.groupby('year', as_index=False).sum(numeric_only=True), x='year', y=self._axis_y, 
+                    barmode='group')
         fig.update_layout(
             xaxis_title='Ano',
             yaxis_title=self._y_label,

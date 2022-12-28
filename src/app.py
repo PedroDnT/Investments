@@ -69,13 +69,13 @@ def main():
                 analyze.serie_decomposition()
             elif view == 'Histograma':
                 st.subheader('Distribuição')
-                analyze.histogram_view(indexer)
+                analyze.histogram_view()
             elif view == 'Boxplot':
                 st.subheader('Boxplot')
-                analyze.boxplot_view(indexer)
+                analyze.boxplot_view()
             elif view == 'Barplot':
                 st.subheader('Barplot')
-                analyze.barplot_view(indexer)
+                analyze.barplot_view()
             elif view == 'Estatística Descritiva':
                 st.subheader('Estatística Descritiva')
                 analyze.descriptive_statistics()
