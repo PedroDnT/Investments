@@ -298,12 +298,12 @@ class StockPriceViz(DataAnalysis):
             st.plotly_chart(fig)
 
 
-    def histogram_view(self, indicators: list, x_label: str):
+    def histogram_view(self, x_label: str):
         '''
         --> Show financial market indicator statistical distribution
         '''
         if len(self._axis_y) > 1:
-            fig = px.histogram(self._data['Close'], x=indicators)
+            fig = px.histogram(self._data['Close'], x=self._axis_y)
             fig.update_layout(
                 xaxis_title=x_label,
                 yaxis_title='')
@@ -311,17 +311,17 @@ class StockPriceViz(DataAnalysis):
         else:
             fig = px.histogram(self._data, x='Close')
             fig.update_layout(
-                xaxis_title=indicators[0],
+                xaxis_title=self._axis_y[0],
                 yaxis_title='')
             st.plotly_chart(fig)
 
 
-    def boxplot_view(self, indicators: list, y_label: str):
+    def boxplot_view(self, y_label: str):
         '''
         --> Show financial market indicator with Boxplot
         '''
         if len(self._axis_y) > 1:
-            fig = px.box(self._data['Close'], y=indicators)
+            fig = px.box(self._data['Close'], y=self._axis_y)
             fig.update_layout(
                 xaxis_title='',
                 yaxis_title=y_label)
@@ -329,7 +329,7 @@ class StockPriceViz(DataAnalysis):
         else:
             fig = px.box(self._data, y='Close')
             fig.update_layout(
-                xaxis_title=indicators[0],
+                xaxis_title=self._axis_y[0],
                 yaxis_title=y_label)
             st.plotly_chart(fig)
 
