@@ -343,15 +343,9 @@ class StockPriceViz(DataAnalysis):
         self._data_norm = self._data.copy()
         if len(self._axis_y) > 1:
             for column in self._axis_y:
-                normalized = list()
-                for row in self._data_norm['Close'][column]:
-                    normalized.append(row / self._data_norm['Close'][column].iloc[0])
-                self._data_norm.loc[:, ('Close', column)] = normalized
+                self._data_norm.loc[:, ('Close', column)] = self._data_norm['Close'][column] / self._data_norm['Close'][column][0]
         else:
-            normalized = list()
-            for row in self._data_norm['Close']:
-                normalized.append(row / self._data_norm['Close'].iloc[0])
-            self._data_norm['Close'] = normalized
+            self._data_norm['Close'] = self._data_norm['Close'] / self._data_norm['Close'].iloc[0]
 
 
     def normalized_metric(self):

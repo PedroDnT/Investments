@@ -8,12 +8,16 @@ import streamlit as st
 import pandas as pd
 
 
+#============================================IBOVESPA Indexers===========================================
 carteira = carteira_ibov('./data/carteira_ibov.csv', cols=['Código']).copy()
 
+# Indicadores básicos da economia
 data = BrazilianIndicators()
 data.clean_data_bcb()
 data.clean_data_ibge()
 data = data.data_frame_indicators()
+
+#============================================Economy indexers============================================
 # Indexers description
 description = pd.DataFrame({'Indicador': ['Rentabilidade no 1º dia do mês (BCB-Demab)', 
                                         'Taxa de Juros Acumulada Mensal (BCB-Demab)', 
@@ -21,6 +25,19 @@ description = pd.DataFrame({'Indicador': ['Rentabilidade no 1º dia do mês (BCB
                                         'Abrange famílias com renda de 1 a 5 salários mínimos (IBGE)',
                                         'Taxa de Juros Acumulada Mensal (BCB-Demab)']}, 
                                         index=['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic'])
+
+# Months label to filter data
+months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+# 12 months before data available
+year_before = data.sort_values('date', ascending=False)[:12]['date'].reset_index(drop=True)[11]
+# One year before of available data
+ref_year = year_before.year
+# The month of one year before of available data
+ref_month = year_before.month
+# Years list
+years_list = sorted(data['date'].dt.year.unique(), reverse=True)
+# Year ref index
+year_index = years_list.index(ref_year)
 
 
 def main():
@@ -50,9 +67,12 @@ def main():
             view = st.sidebar.selectbox('Gráfico', option_view_indexes)
             # Define start year
             if view == 'Decomposição':
-                start_year = str(st.sidebar.selectbox('Ano inicial', sorted(data['date'].dt.year.unique()[:-2], reverse=True)))
+                # Ensures two years before
+                start_year = str(st.sidebar.selectbox('Ano inicial', years_list, index=year_index + 1))
             else:
-                start_year = str(st.sidebar.selectbox('Ano inicial', sorted(data['date'].dt.year.unique(), reverse=True)))
+                start_year = str(st.sidebar.selectbox('Ano inicial', years_list, index=year_index))
+            # Difine start month
+            start_month = st.sidebar.selectbox('Mês inicial', months, index=ref_month - 1)
             # Data range
             if indexer == 'Selecionar todos':
                 indexer = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
