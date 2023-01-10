@@ -6,6 +6,7 @@ from catch_clean import BrazilianIndicators
 from analysis import DataAnalysis, AnalysisSeriesMontly, StockPriceViz, request_data
 import streamlit as st
 import pandas as pd
+from screens.economic_index import brazil_economic_index
 
 
 #============================================IBOVESPA Indexers===========================================
@@ -18,93 +19,18 @@ data.clean_data_bcb()
 data.clean_data_ibge()
 data = data.data_frame_indicators()
 
-# Indexers description
-description = pd.DataFrame({'Indicador': ['Rentabilidade no 1º dia do mês (BCB-Demab)', 
-                                        'Taxa de Juros Acumulada Mensal (BCB-Demab)', 
-                                        'Abrange famílias com renda de 1 a 40 salários mínimos (IBGE)',
-                                        'Abrange famílias com renda de 1 a 5 salários mínimos (IBGE)',
-                                        'Taxa de Juros Acumulada Mensal (BCB-Demab)']}, 
-                                        index=['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic'])
-
-# Months label to filter data
-months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-months_dict = {'Jan': '01', 'Fev': '02', 'Mar': '03', 'Abr': '04', 'Mai': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 
-                'Set': '09', 'Out': '10', 'Nov': '11', 'Dez': '12'}
-# 12 months before data available
-year_before = data.sort_values('date', ascending=False)[:12]['date'].reset_index(drop=True)[11]
-# One year before of available data
-ref_year = year_before.year
-# The month of one year before of available data
-ref_month = year_before.month
-# Years list
-years_list = sorted(data['date'].dt.year.unique(), reverse=True)
-# Year ref index
-year_index = years_list.index(ref_year)
-
 
 def main():
     st.set_page_config(layout='wide')
-    indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
     option_view = ['Série Temporal', 'Candlestick', 'Decomposição', 'Histograma', 'Boxplot', 'Estatística Descritiva', 
                     'Correlação']
-    option_view_indexes = ['Série Temporal', 'Decomposição', 'Histograma', 'Boxplot', 'Barplot', 'Estatística Descritiva', 
-                            'Correlação']
     st.title('Mercado Financeiro')
     st.sidebar.selectbox('País', ['Brasil'])
     indicators = ['Índices Econômicos', 'Ações IBOVESPA']
     indicator = st.sidebar.selectbox('Indicadores', indicators)
     # ============================Economics indices visualizations============================
     if indicator == 'Índices Econômicos':
-        # All indexers options
-        all_ = st.sidebar.checkbox('Selecionar todos')
-        if all_:
-            indexer = st.sidebar.multiselect('Índice', indexers, default=indexers)
-        else:
-            indexer = st.sidebar.multiselect('Índice', indexers, default=['Poupança'])
-        # Time series of indexers
-        if indexer:
-            # View options
-            view = st.sidebar.selectbox('Gráfico', option_view_indexes)
-            # Define start year
-            if view == 'Decomposição':
-                # Ensures two years before
-                start_year = str(st.sidebar.selectbox('Ano inicial', years_list, index=year_index + 1))
-            else:
-                start_year = str(st.sidebar.selectbox('Ano inicial', years_list, index=year_index))
-            # Difine start month
-            start_month = st.sidebar.selectbox('Mês inicial', months, index=ref_month - 1)
-            # Start Year/ month definition 
-            start_year_month = start_year + '-' + months_dict[start_month] + '-01' 
-            # Data range
-            if indexer == 'Selecionar todos':
-                indexer = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-            analyze = AnalysisSeriesMontly(data=data, axis_y=indexer, start_date=start_year_month)
-            if view == 'Série Temporal':
-                st.subheader('Série Temporal')
-                analyze.visualize_indicator()
-                analyze.acumulated()
-            elif view == 'Decomposição':
-                st.subheader('Sazonalidade e Tendência')
-                analyze.serie_decomposition()
-            elif view == 'Histograma':
-                st.subheader('Distribuição')
-                analyze.histogram_view()
-            elif view == 'Boxplot':
-                st.subheader('Boxplot')
-                analyze.boxplot_view()
-            elif view == 'Barplot':
-                st.subheader('Barplot')
-                analyze.barplot_view()
-            elif view == 'Estatística Descritiva':
-                st.subheader('Estatística Descritiva')
-                analyze.descriptive_statistics()
-            elif view == 'Correlação':
-                st.subheader('Correlação Linear')
-                analyze.correlation()
-            # Indicator source description
-            st.table(description[description.index.isin(indexer)])    
-        else:
-            st.write('Selecione um índice!')
+        brazil_economic_index(data)
     # ============================Stocks prices visualizations============================
     elif indicator == 'Ações IBOVESPA':
         visualize_stocks = st.sidebar.multiselect('Stocks', carteira['código'].values, default='AMBEV S/A')
@@ -123,28 +49,28 @@ def main():
             stock_viz = StockPriceViz(stock_data, selected_tickers)
             if view == 'Candlestick':  
                 # Show selected visualization
-                st.subheader('Cotação de preço')
+                st.subheader('Cotação de Preço')
                 stock_viz.candlestick()
             elif view == 'Série Temporal':
                 normalization = st.sidebar.checkbox('Normalizar')
                 if normalization:
-                    st.subheader('Preço de fechamento normalizado')
+                    st.subheader('Preço de Fechamento Normalizado')
                     stock_viz.normalize_time_series()
                     stock_viz.time_series()
                     stock_viz.normalized_metric()
                 else:
-                    st.subheader('Preço de fechamento')
+                    st.subheader('Preço de Fechamento')
                     stock_viz.time_series()
             elif view == 'Decomposição':
                 st.subheader('Sazonalidade e Tendência')
                 stock_viz.serie_decomposition()
             elif view == 'Histograma':
                 # Show selected visualization
-                st.subheader('Preço de fechamento')
+                st.subheader('Preço de Fechamento')
                 stock_viz.histogram_view(x_label='R$')
             elif view == 'Boxplot':
                 # Show selected visualization
-                st.subheader('Preço de fechamento')
+                st.subheader('Preço de Fechamento')
                 stock_viz.boxplot_view(y_label='R$')
             elif view == 'Estatística Descritiva':
                 st.subheader('Estatística Descritiva')
