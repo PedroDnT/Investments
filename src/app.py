@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+from datetime import date, timedelta
 from catch_clean import carteira_ibov
 from catch_clean import BrazilianIndicators
 from analysis import DataAnalysis, AnalysisSeriesMontly, StockPriceViz, request_data
@@ -10,14 +10,14 @@ import pandas as pd
 
 #============================================IBOVESPA Indexers===========================================
 carteira = carteira_ibov('./data/carteira_ibov.csv', cols=['Código']).copy()
+year_before_date = date.today() - timedelta(days=365)
 
-# Indicadores básicos da economia
+#============================================Economy indexers============================================
 data = BrazilianIndicators()
 data.clean_data_bcb()
 data.clean_data_ibge()
 data = data.data_frame_indicators()
 
-#============================================Economy indexers============================================
 # Indexers description
 description = pd.DataFrame({'Indicador': ['Rentabilidade no 1º dia do mês (BCB-Demab)', 
                                         'Taxa de Juros Acumulada Mensal (BCB-Demab)', 
@@ -28,6 +28,8 @@ description = pd.DataFrame({'Indicador': ['Rentabilidade no 1º dia do mês (BCB
 
 # Months label to filter data
 months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+months_dict = {'Jan': '01', 'Fev': '02', 'Mar': '03', 'Abr': '04', 'Mai': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 
+                'Set': '09', 'Out': '10', 'Nov': '11', 'Dez': '12'}
 # 12 months before data available
 year_before = data.sort_values('date', ascending=False)[:12]['date'].reset_index(drop=True)[11]
 # One year before of available data
@@ -59,8 +61,6 @@ def main():
             indexer = st.sidebar.multiselect('Índice', indexers, default=indexers)
         else:
             indexer = st.sidebar.multiselect('Índice', indexers, default=['Poupança'])
-        # Data read
-        #economic_data = DataAnalysis(data, indexer)
         # Time series of indexers
         if indexer:
             # View options
@@ -73,10 +73,12 @@ def main():
                 start_year = str(st.sidebar.selectbox('Ano inicial', years_list, index=year_index))
             # Difine start month
             start_month = st.sidebar.selectbox('Mês inicial', months, index=ref_month - 1)
+            # Start Year/ month definition 
+            start_year_month = start_year + '-' + months_dict[start_month] + '-01' 
             # Data range
             if indexer == 'Selecionar todos':
                 indexer = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-            analyze = AnalysisSeriesMontly(data=data, axis_y=indexer, start_date=start_year)
+            analyze = AnalysisSeriesMontly(data=data, axis_y=indexer, start_date=start_year_month)
             if view == 'Série Temporal':
                 st.subheader('Série Temporal')
                 analyze.visualize_indicator()
@@ -112,9 +114,10 @@ def main():
             view = st.sidebar.selectbox('Gráfico', option_view)
             # Define start date
             if view == 'Decomposição':
-                start_date = str(st.sidebar.date_input('Data inicial', datetime(2021, 1, 1)))
+                # Ensure two years to calculate decomposition
+                start_date = str(st.sidebar.date_input('Data inicial', year_before_date - timedelta(days=365)))
             else:
-                start_date = str(st.sidebar.date_input('Data inicial', datetime(2022, 1, 1)))
+                start_date = str(st.sidebar.date_input('Data inicial', year_before_date))
             # Download data from Yahoo Finance
             stock_data = request_data(selected_tickers, start_date)
             stock_viz = StockPriceViz(stock_data, selected_tickers)
