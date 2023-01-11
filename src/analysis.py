@@ -295,7 +295,7 @@ class StockPriceViz(DataAnalysis):
                 xaxis_title='Data',
                 yaxis_title='R$'
             )
-            st.plotly_chart(fig)
+            st.plotly_chart(fig, use_container_width=True)
 
 
     def histogram_view(self, x_label: str):

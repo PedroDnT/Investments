@@ -3,7 +3,7 @@ import pandas as pd
 from analysis import AnalysisSeriesMontly
 
 
-def brazil_economic_index(data: pd.DataFrame):
+def economic_index_screen(data: pd.DataFrame):
     '''
     --> This function create the screen of Brazilian Economic Index. 
 
@@ -13,7 +13,7 @@ def brazil_economic_index(data: pd.DataFrame):
     # variables definition
     indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
     option_view_indexes = ['Série Temporal', 'Decomposição', 'Histograma', 'Boxplot', 'Barplot', 'Estatística Descritiva', 
-                            'Correlação']
+                            'Correlação Linear']
     # Available data years
     years_list = sorted(data['date'].dt.year.unique(), reverse=True)
     # Auxiliar variables to apply data filter on app inicialization
@@ -82,10 +82,13 @@ def brazil_economic_index(data: pd.DataFrame):
         elif view == 'Estatística Descritiva':
             st.subheader('Estatística Descritiva')
             analyze.descriptive_statistics()
-        elif view == 'Correlação':
+        elif view == 'Correlação Linear':
             st.subheader('Correlação Linear')
             analyze.correlation()
         # Indicator source description
-        st.table(description[description.index.isin(indexer)])    
+        if view != 'Correlação Linear':
+            st.table(description[description.index.isin(indexer)])
+        elif view == 'Correlação Linear' and len(indexer) > 1:
+            st.table(description[description.index.isin(indexer)])
     else:
         st.write('Selecione um índice!')
