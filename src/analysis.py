@@ -41,9 +41,9 @@ class DataAnalysis:
             mask = np.zeros_like(df_corr, dtype=bool)
             mask[np.triu_indices_from(mask)] = True
             # Viz
-            df_corr_viz = df_corr.mask(mask).dropna(how='all').dropna('columns', how='all')
+            df_corr_viz = df_corr.mask(mask).dropna(how='all').dropna(axis='columns', how='all')
             fig = px.imshow(df_corr_viz, text_auto=True)
-            st.plotly_chart(fig)
+            st.plotly_chart(fig, use_container_width=True)
             
 
     def normalize_time_series(self):
@@ -141,7 +141,7 @@ class AnalysisSeriesMontly(DataAnalysis):
         fig.update_layout(
             xaxis_title='%',
             yaxis_title='Frequência')
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
 
 
     def boxplot_view(self):
@@ -152,7 +152,7 @@ class AnalysisSeriesMontly(DataAnalysis):
         fig.update_layout(
             xaxis_title='',
             yaxis_title=self._y_label)
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
 
 
     def barplot_view(self):
@@ -167,7 +167,7 @@ class AnalysisSeriesMontly(DataAnalysis):
             xaxis_title='Ano',
             yaxis_title=self._y_label,
             xaxis=dict(type='category'))
-        st.plotly_chart(fig)
+        st.plotly_chart(fig, use_container_width=True)
 
 
     def acumulated(self):
@@ -204,11 +204,11 @@ class AnalysisSeriesMontly(DataAnalysis):
                 # Show seasonal result
                 seasonal_fig = px.line(df_dec, x='date', y=self._axis_y[0], title=f'Sazonalidade {self._axis_y[0]}')
                 seasonal_fig.update_layout(xaxis_title='Data', yaxis_title='')
-                st.plotly_chart(seasonal_fig)
+                st.plotly_chart(seasonal_fig, use_container_width=True)
                 # Show trend result
                 tred_fig = px.line(df_tred, x='date', y=self._axis_y[0], title=f'Tendênica {self._axis_y[0]}')
                 tred_fig.update_layout(xaxis_title='Data', yaxis_title='')
-                st.plotly_chart(tred_fig) 
+                st.plotly_chart(tred_fig, use_container_width=True) 
         except:
             st.write('Selecione ao menos 2 anos completos para essa visualização!')
     
@@ -288,7 +288,7 @@ class StockPriceViz(DataAnalysis):
                 xaxis_title='Data',
                 yaxis_title='R$'
             )
-            st.plotly_chart(fig)    
+            st.plotly_chart(fig, use_container_width=True)    
         else:
             fig = px.line(data, x=data.index, y='Close')
             fig.update_layout(
@@ -307,13 +307,13 @@ class StockPriceViz(DataAnalysis):
             fig.update_layout(
                 xaxis_title=x_label,
                 yaxis_title='')
-            st.plotly_chart(fig)
+            st.plotly_chart(fig, use_container_width=True)
         else:
             fig = px.histogram(self._data, x='Close')
             fig.update_layout(
                 xaxis_title=self._axis_y[0],
                 yaxis_title='')
-            st.plotly_chart(fig)
+            st.plotly_chart(fig, use_container_width=True)
 
 
     def boxplot_view(self, y_label: str):
@@ -331,7 +331,7 @@ class StockPriceViz(DataAnalysis):
             fig.update_layout(
                 xaxis_title=self._axis_y[0],
                 yaxis_title=y_label)
-            st.plotly_chart(fig)
+            st.plotly_chart(fig, use_container_width=True)
 
 
     def normalize_time_series(self):
@@ -389,11 +389,12 @@ class StockPriceViz(DataAnalysis):
                 # Show seasonal result
                 seasonal_fig = px.line(df_dec, x='date', y=self._axis_y[0], title=f'Sazonalidade {self._axis_y[0]}')
                 seasonal_fig.update_layout(xaxis_title='Data', yaxis_title='')
-                st.plotly_chart(seasonal_fig)
+                st.plotly_chart(seasonal_fig, use_container_width=True)
+                
                 # Show trend result
                 tred_fig = px.line(df_tred, x='date', y=self._axis_y[0], title=f'Tendênica {self._axis_y[0]}')
                 tred_fig.update_layout(xaxis_title='Data', yaxis_title='')
-                st.plotly_chart(tred_fig) 
+                st.plotly_chart(tred_fig, use_container_width=True) 
                 st.write('Dados agregados por média mês!')
         except:
             st.write('Selecione ao menos 2 anos completos para essa visualização!')
