@@ -16,6 +16,7 @@ data = data.data_frame_indicators()
 
 
 def main():
+    # Global menu
     st.set_page_config(layout='wide')
     st.title('Mercado Financeiro')
     st.sidebar.selectbox('País', ['Brasil'])
