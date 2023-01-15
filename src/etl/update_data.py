@@ -1,4 +1,4 @@
-from catch_clean import DownloadFilesBrGov
+from etl.catch_clean import DownloadFilesBrGov
 
 
 download = DownloadFilesBrGov()

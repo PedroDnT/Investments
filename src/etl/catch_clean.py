@@ -1,3 +1,4 @@
+import streamlit as st
 # Data manipulation
 import pandas as pd
 from datetime import date
@@ -179,3 +180,48 @@ def carteira_ibov(tickers_file_path: str, cols: list):
     carteira.columns = carteira.columns.str.lower()
     carteira['index'] = carteira['index'] + '.SA'
     return carteira
+
+
+@st.cache
+def read_fund_data(path: str):
+    '''
+    Read historical investment fund data 
+
+    Parameters: path : String 
+                    The file path
+
+    Returns: DataFrame
+                Pandas DataFrame with fund historical data containing with the following columns: 
+                    dt_comptc: Date 
+                    cnpj_fundo: CNPJ 
+                    denom_social: Social denomination 
+                    vl_quota: Value of quota 
+                    vl_patrim_liq: Value of net worth 
+                    captc_dia: Fundraising carried out on the day
+                    resg_dia: Redemptions paid on the day 
+                    nr_cotst: Number of shareholders
+    '''
+    df = pd.read_csv(path)
+    df['date'] = pd.to_datetime(df['date'])
+    df.drop_duplicates(inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    return df
+
+
+@st.cache    
+def request_data(selected_tickers: list, start_date: str):
+    '''
+    Download historical financial data from Yahoo Finance about ticker negatiation 
+
+    Parameters: selected_tickers : List of string 
+                    Company tickers selected to download
+    
+                start_date: String
+                    Initial date to download historical data
+
+    Returns: DataFrame
+                Pandas DataFrame with Open, High, Low, Close, Adj Close and Volume columns about selected tickers 
+                market negatiation
+    '''
+    today = date.today()
+    return yf.download(tickers=selected_tickers, start=start_date, end=today)

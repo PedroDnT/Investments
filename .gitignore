@@ -10,5 +10,6 @@ __pycache__/
 src/.Rhistory
 src/.RData
 notebooks/.ipynb_checkpoints/
-data/fundos/inf_diario
+data/fundos/
 data/fundos/cad_fi.csv
+data/fundos.csv

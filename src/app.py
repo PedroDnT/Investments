@@ -1,8 +1,10 @@
 import streamlit as st
-from catch_clean import carteira_ibov
-from catch_clean import BrazilianIndicators
+from etl.catch_clean import carteira_ibov
+from etl.catch_clean import BrazilianIndicators
 from screens.economic_index import economic_index_screen
 from screens.stock_price import stock_price_screen
+from screens.funds import funds_screen
+from etl.catch_clean import read_fund_data
 
 
 #============================================IBOVESPA Indexers===========================================
@@ -12,24 +14,30 @@ carteira = carteira_ibov('./data/carteira_ibov.csv', cols=['Código']).copy()
 data = BrazilianIndicators()
 data.clean_data_bcb()
 data.clean_data_ibge()
-data = data.data_frame_indicators()
+data = data.data_frame_indicators() 
 
 
 def main():
-    # Global menu
+    # Header
     st.set_page_config(layout='wide')
     st.title('Mercado Financeiro')
     st.sidebar.selectbox('País', ['Brasil'])
-    indicators = ['Índices Econômicos', 'Ações IBOVESPA']
+    indicators = ['Índices Econômicos', 'Fundos', 'Ações IBOVESPA']
     indicator = st.sidebar.selectbox('Indicadores', indicators)
+    # Screens options
     # ============================Economics indices visualizations============================
     if indicator == 'Índices Econômicos':
         economic_index_screen(data)
     # ============================Stocks prices visualizations============================
     elif indicator == 'Ações IBOVESPA':
         stock_price_screen(carteira)
+    elif indicator == 'Fundos':
+        df_funds = read_fund_data('./data/fundos.csv')
+        funds_screen(df_funds)
+
+    # Footer
     st.markdown('[GitHub](https://github.com/MarcosRMG/Investments)')
-    st.markdown('Version 1.7.2')
+    st.markdown('Version 1.8.2')
 
     
 if __name__ == '__main__':

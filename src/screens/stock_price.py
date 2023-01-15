@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import date, timedelta
-from analysis import StockPriceViz, request_data
+from data_viz.analysis import StockPriceViz 
+from etl.catch_clean import request_data
 
 
 def stock_price_screen(carteira: pd.DataFrame):

@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from analysis import AnalysisSeriesMontly
+from data_viz.analysis import AnalysisSeries
 
 
 def economic_index_screen(data: pd.DataFrame):
@@ -62,10 +62,10 @@ def economic_index_screen(data: pd.DataFrame):
         # Data range
         if indexer == 'Selecionar todos':
             indexer = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-        analyze = AnalysisSeriesMontly(data=data, axis_y=indexer, start_date=start_year_month)
+        analyze = AnalysisSeries(data=data, axis_y=indexer, start_date=start_year_month)
         if view == 'Série Temporal':
             st.subheader('Série Temporal')
-            analyze.visualize_indicator()
+            analyze.time_series()
             analyze.acumulated()
         elif view == 'Decomposição':
             st.subheader('Sazonalidade e Tendência')

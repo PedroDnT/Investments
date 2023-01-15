@@ -72,7 +72,7 @@ class DataAnalysis:
         st.dataframe(df)
 
 
-class AnalysisSeriesMontly(DataAnalysis):
+class AnalysisSeries(DataAnalysis):
     '''
     Analyzes the time series of the selected indicator(s)
     '''
@@ -94,23 +94,24 @@ class AnalysisSeriesMontly(DataAnalysis):
         self._data = data.query('date >= @self._start_date')
 
 
-    def visualize_indicator(self):
+    def time_series(self, legend_x_position=1.02, legend_y_position=1):
         '''
         --> Visualize the selected indicator
         ''' 
         # Visualization
-        fig = px.line(self._data, x='date', y=self._axis_y)
+        fig = px.line(self._data, x=self._axis_x, y=self._axis_y)
         annotations = list()
         annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
                               xanchor='center', yanchor='top',
-                              text='Fonte: Governo Brasileiro',
+                              text='Fonte: Portal de Dados Abertos',
                               font=dict(family='Arial',
                                         size=12,
                                         color='rgb(150,150,150)'),
                               showarrow=False))
         fig.update_layout(xaxis_title=self._x_label,
                         yaxis_title=self._y_label,
-                        annotations=annotations)
+                        annotations=annotations,
+                        legend=dict(x=legend_x_position, y=legend_y_position))
         st.plotly_chart(fig, use_container_width=True)
 
 
@@ -398,22 +399,3 @@ class StockPriceViz(DataAnalysis):
                 st.write('Dados agregados por média mês!')
         except:
             st.write('Selecione ao menos 2 anos completos para essa visualização!')
-    
-
-@st.cache    
-def request_data(selected_tickers: list, start_date: str):
-    '''
-    Download historical financial data from Yahoo Finance about ticker negatiation 
-
-    Parameters: selected_tickers : List of string 
-                    Company tickers selected to download
-    
-                start_date: String
-                    Initial date to download historical data
-
-    Returns: DataFrame
-                Pandas DataFrame with Open, High, Low, Close, Adj Close and Volume columns about selected tickers 
-                market negatiation
-    '''
-    today = date.today()
-    return yf.download(tickers=selected_tickers, start=start_date, end=today)
