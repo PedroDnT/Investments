@@ -32,7 +32,7 @@ def main():
     elif indicator == 'Ações IBOVESPA':
         stock_price_screen(carteira)
     elif indicator == 'Fundos':
-        df_funds = read_fund_data('./data/fundos.csv')
+        df_funds = read_fund_data('https://bitbucket.org/marcos_rmg/largedata/raw/65a1af3d452651c9775ba8538e49d59ce0c1b38b/fundos.csv')
         funds_screen(df_funds)
 
     # Footer
