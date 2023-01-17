@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from data_viz.analysis import AnalysisSeries
+from screens.view_options import visualizations, view_list
+from datetime import datetime
 
 
 def economic_index_screen(data: pd.DataFrame):
@@ -12,8 +14,7 @@ def economic_index_screen(data: pd.DataFrame):
     '''
     # variables definition
     indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-    option_view_indexes = ['Série Temporal', 'Decomposição', 'Histograma', 'Boxplot', 'Barplot', 'Estatística Descritiva', 
-                            'Correlação Linear']
+    option_view_indexes = view_list()
     # Available data years
     years_list = sorted(data['date'].dt.year.unique(), reverse=True)
     # Auxiliar variables to apply data filter on app inicialization
@@ -50,7 +51,7 @@ def economic_index_screen(data: pd.DataFrame):
         # View options
         view = st.sidebar.selectbox('Gráfico', option_view_indexes)
         # Define start year
-        if view == 'Decomposição':
+        if view == 'Sazonalidade e Tendência' or 'Barplot':
             # Ensures two years before
             start_year = str(st.sidebar.selectbox('Ano inicial', years_list, index=year_index + 1))
         else:
@@ -63,29 +64,15 @@ def economic_index_screen(data: pd.DataFrame):
         if indexer == 'Selecionar todos':
             indexer = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
         analyze = AnalysisSeries(data=data, axis_y=indexer, start_date=start_year_month)
+        # This variable avoid unecessary view check inside visualization function
+        check_other_options = True
         if view == 'Série Temporal':
+            check_other_options = False
             st.subheader('Série Temporal')
             analyze.time_series()
             analyze.acumulated()
-        elif view == 'Decomposição':
-            st.subheader('Sazonalidade e Tendência')
-            analyze.serie_decomposition()
-        elif view == 'Histograma':
-            st.subheader('Distribuição')
-            analyze.histogram_view()
-        elif view == 'Boxplot':
-            st.subheader('Boxplot')
-            analyze.boxplot_view()
-        elif view == 'Barplot':
-            st.subheader('Barplot')
-            analyze.barplot_view()
-        elif view == 'Estatística Descritiva':
-            st.subheader('Estatística Descritiva')
-            analyze.descriptive_statistics()
-        elif view == 'Correlação Linear':
-            st.subheader('Correlação Linear')
-            analyze.correlation()
-        # Indicator source description
+        # Other options
+        visualizations(analyzer=analyze, view=view, check=check_other_options)
         if view != 'Correlação Linear':
             st.table(description[description.index.isin(indexer)])
         elif view == 'Correlação Linear' and len(indexer) > 1:

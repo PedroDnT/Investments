@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 from data_viz.analysis import AnalysisSeries
 from datetime import date, timedelta
+from screens.view_options import visualizations, view_list
 
 
 def funds_screen(data: pd.DataFrame()):
@@ -40,13 +41,31 @@ def funds_screen(data: pd.DataFrame()):
         # Data Viz
         # Date definition (One Year before as default)
         year_before_date = date.today() - timedelta(days=365)
-        start_date = str(st.sidebar.date_input('Data inicial', year_before_date))
+        view_options_list = view_list()
+        view = st.sidebar.selectbox('Gráfico', view_options_list)
+        if view == 'Sazonalidade e Tendência' or 'Barplot':
+            # Ensure two years to calculate decomposition
+            start_date = str(st.sidebar.date_input('Data inicial', year_before_date - timedelta(days=365)))
+        else:
+            start_date = str(st.sidebar.date_input('Data inicial', year_before_date))
         # View options
-        grapth = st.sidebar.selectbox('Gráfico', ['Série Temporal'])
         analyze = AnalysisSeries(data=data_pivot, axis_y=data_pivot.columns[1:], start_date=start_date, 
                                 y_label=indicator_dict[indicator][1])
-        if grapth == 'Série Temporal':
-            st.subheader(indicator)
-            analyze.time_series(legend_x_position=0, legend_y_position=1.2)
+        # This variable avoid unecessary view check inside visualization function
+        check_other_options = True
+        if view == 'Série Temporal':
+            check_other_options = False
+            normalization = st.sidebar.checkbox('Normalizar')
+            if normalization:
+                st.subheader(indicator)
+                analyze.normalize_time_series()
+                analyze.time_series(legend_x_position=0, legend_y_position=1.2)
+                analyze.normalized_metric()
+            else:
+                st.subheader(indicator)
+                analyze.time_series(legend_x_position=0, legend_y_position=1.2)
+        # Others options
+        visualizations(analyzer=analyze, view=view, check=check_other_options)
+
     else:
         st.write('Selecione um fundo de investimento!')

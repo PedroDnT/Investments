@@ -156,16 +156,16 @@ class AnalysisSeries(DataAnalysis):
         st.plotly_chart(fig, use_container_width=True)
 
 
-    def barplot_view(self):
+    def barplot_view(self, aggregation: str, function):
         '''
         --> Show financial market indicator with Barplot by year
         '''
         data = self._data.copy()
-        data['year'] = data['date'].dt.year
-        fig = px.bar(data.groupby('year', as_index=False).sum(numeric_only=True), x='year', y=self._axis_y, 
-                    barmode='group')
+        data_agg = data_aggregation(data=data, aggregation=aggregation, function=function)
+        
+        fig = px.bar(data_agg, x=data_agg.index, y=self._axis_y, barmode='group')
         fig.update_layout(
-            xaxis_title='Ano',
+            xaxis_title=aggregation,
             yaxis_title=self._y_label,
             xaxis=dict(type='category'))
         st.plotly_chart(fig, use_container_width=True)
@@ -335,6 +335,34 @@ class StockPriceViz(DataAnalysis):
             st.plotly_chart(fig, use_container_width=True)
 
 
+    def barplot_view(self, y_label: str, aggregation: str, function: object):
+        '''
+        --> Show financial market indicator with Boxplot
+        '''
+        data = self._data.copy()
+        if aggregation == 'Ano':
+            data[aggregation] = data.index.year
+        elif aggregation == 'Trimestre':
+            data[aggregation] = data.index.quarter
+        elif aggregation == 'Mês':
+            data[aggregation] = data.index.month
+
+        data_agg = data.groupby(aggregation, as_index=True).apply(function).copy()
+        #data_agg = data_aggregation(data, aggregation=aggregation, function=function)
+        if len(self._axis_y) > 1:
+            fig = px.bar(data_agg['Close'], y=self._axis_y)
+            fig.update_layout(
+                xaxis_title='',
+                yaxis_title=y_label)
+            st.plotly_chart(fig)
+        else:
+            fig = px.bar(data_agg, y='Close')
+            fig.update_layout(
+                xaxis_title=self._axis_y[0],
+                yaxis_title=y_label)
+            st.plotly_chart(fig, use_container_width=True)
+
+
     def normalize_time_series(self):
         '''
         --> Transform time series in normalized form
@@ -399,3 +427,16 @@ class StockPriceViz(DataAnalysis):
                 st.write('Dados agregados por média mês!')
         except:
             st.write('Selecione ao menos 2 anos completos para essa visualização!')
+
+
+def data_aggregation(data: pd.DataFrame, aggregation: str, function: object):
+    if aggregation == 'Ano':
+        data[aggregation] = data['date'].dt.year
+    elif aggregation == 'Trimestre':
+        data[aggregation] = data['date'].dt.quarter
+    elif aggregation == 'Mês':
+        data[aggregation] = data['date'].dt.month
+
+    data_agg = data.groupby(aggregation, as_index=True).apply(function).copy()
+
+    return data_agg
