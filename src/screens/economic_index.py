@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from data_viz.analysis import AnalysisSeries
-from screens.view_options import visualizations, view_list
+from screens.view_options import visualizations, view_list, date_interval
 from datetime import datetime
 
 
@@ -15,24 +15,6 @@ def economic_index_screen(data: pd.DataFrame):
     # variables definition
     indexers = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
     option_view_indexes = view_list()
-    # Available data years
-    years_list = sorted(data['date'].dt.year.unique(), reverse=True)
-    # Auxiliar variables to apply data filter on app inicialization
-    # One year before of available data
-    # 12 months before data available
-    year_before = data.sort_values('date', ascending=False)[:12]['date'].reset_index(drop=True)[11]
-    ref_year = year_before.year
-    # The month of one year before of available data
-    ref_month = year_before.month
-    # Years list
-    years_list = sorted(data['date'].dt.year.unique(), reverse=True)
-    # Year ref index
-    year_index = years_list.index(ref_year)
-    # Months label to filter data
-    months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-    months_dict = {'Jan': '01', 'Fev': '02', 'Mar': '03', 'Abr': '04', 'Mai': '05', 'Jun': '06', 'Jul': '07', 'Ago': '08', 
-                'Set': '09', 'Out': '10', 'Nov': '11', 'Dez': '12'}
-
     # Indexers description
     description = pd.DataFrame({'Indicador': ['Rentabilidade no 1º dia do mês (BCB-Demab)', 
                                         'Taxa de Juros Acumulada Mensal (BCB-Demab)', 
@@ -50,20 +32,11 @@ def economic_index_screen(data: pd.DataFrame):
     if indexer:
         # View options
         view = st.sidebar.selectbox('Gráfico', option_view_indexes)
-        # Define start year
-        if view == 'Sazonalidade e Tendência' or 'Barplot':
-            # Ensures two years before
-            start_year = str(st.sidebar.selectbox('Ano inicial', years_list, index=year_index + 1))
-        else:
-            start_year = str(st.sidebar.selectbox('Ano inicial', years_list, index=year_index))
-        # Difine start month
-        start_month = st.sidebar.selectbox('Mês inicial', months, index=ref_month - 1)
-        # Start Year/ month definition 
-        start_year_month = start_year + '-' + months_dict[start_month] + '-01' 
-        # Data range
+        # Define date interval
+        start_date, end_date = date_interval(view=view)
         if indexer == 'Selecionar todos':
             indexer = ['Poupança', 'CDI', 'IPCA', 'INPC', 'Selic']
-        analyze = AnalysisSeries(data=data, axis_y=indexer, start_date=start_year_month)
+        analyze = AnalysisSeries(data=data, start_date=start_date, end_date=end_date, axis_y=indexer)
         # This variable avoid unecessary view check inside visualization function
         check_other_options = True
         if view == 'Série Temporal':

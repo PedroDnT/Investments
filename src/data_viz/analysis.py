@@ -15,12 +15,14 @@ class DataAnalysis:
     '''
     --> Define the data and indicators to be analyzed
     '''
-    def __init__(self, data: pd.DataFrame, axis_y: list):
+    def __init__(self, data: pd.DataFrame, start_date: str, end_date: str, axis_y: list):
         '''
         :param data: Data source to analyze
         :param y_axis: Selected columns in Pandas DataFrame
         '''
         self._data = data
+        self._start_date = start_date
+        self._end_date = end_date
         self._axis_y = axis_y
 
 
@@ -76,7 +78,7 @@ class AnalysisSeries(DataAnalysis):
     '''
     Analyzes the time series of the selected indicator(s)
     '''
-    def __init__(self, data, axis_y, start_date, axis_x='date', x_label='', y_label='%'):
+    def __init__(self, data, start_date, end_date, axis_y, axis_x='date', x_label='', y_label='%'):
         '''
         :param data: DataFrame Pandas of the time series with monthly indicators
         :param axis_y: Selected columns in Pandas DataFrame
@@ -86,12 +88,11 @@ class AnalysisSeries(DataAnalysis):
         :param y_label: Label y of serie
         :param data_slice: Pandas DataFrame with selected initial date
         '''
-        super().__init__(data, axis_y)
-        self._start_date = start_date
+        super().__init__(data, axis_y, start_date, end_date)
         self._axis_x = axis_x
         self._x_label = x_label
         self._y_label = y_label
-        self._data = data.query('date >= @self._start_date')
+        self._data = data.loc[(data['date'] >= self._start_date) & (data['date'] <= self._end_date)]
 
 
     def time_series(self, legend_x_position=1.02, legend_y_position=1):
@@ -218,13 +219,16 @@ class StockPriceViz(DataAnalysis):
     '''
     Data visualization of Yahoo Finance historical data
     '''
-    def __init__(self, data, axis_y, data_norm=pd.DataFrame):
+    def __init__(self, data, start_date, end_date, axis_y, data_norm=pd.DataFrame):
         '''
         :param data: Requested data
+        :param data_norm: Data in normalized format
         :param tickers: Selected company tickers to download data
         '''
-        super().__init__(data, axis_y)
+        super().__init__(data, start_date, end_date, axis_y)
         self._data_norm = data_norm
+        self._data = self._data.loc[(self._data['Date'] >= self._start_date) & 
+                                    (self._data['Date'] <= self._end_date)]
 
     
     def candlestick(self):
@@ -299,14 +303,14 @@ class StockPriceViz(DataAnalysis):
             st.plotly_chart(fig, use_container_width=True)
 
 
-    def histogram_view(self, x_label: str):
+    def histogram_view(self):
         '''
         --> Show financial market indicator statistical distribution
         '''
         if len(self._axis_y) > 1:
             fig = px.histogram(self._data['Close'], x=self._axis_y)
             fig.update_layout(
-                xaxis_title=x_label,
+                xaxis_title='R$',
                 yaxis_title='')
             st.plotly_chart(fig, use_container_width=True)
         else:
@@ -317,7 +321,7 @@ class StockPriceViz(DataAnalysis):
             st.plotly_chart(fig, use_container_width=True)
 
 
-    def boxplot_view(self, y_label: str):
+    def boxplot_view(self):
         '''
         --> Show financial market indicator with Boxplot
         '''
@@ -325,41 +329,38 @@ class StockPriceViz(DataAnalysis):
             fig = px.box(self._data['Close'], y=self._axis_y)
             fig.update_layout(
                 xaxis_title='',
-                yaxis_title=y_label)
+                yaxis_title='R$')
             st.plotly_chart(fig)
         else:
             fig = px.box(self._data, y='Close')
             fig.update_layout(
                 xaxis_title=self._axis_y[0],
-                yaxis_title=y_label)
+                yaxis_title='R$')
             st.plotly_chart(fig, use_container_width=True)
 
 
-    def barplot_view(self, y_label: str, aggregation: str, function: object):
+    def barplot_view(self, aggregation: str, function: object):
         '''
         --> Show financial market indicator with Boxplot
         '''
         data = self._data.copy()
-        if aggregation == 'Ano':
-            data[aggregation] = data.index.year
-        elif aggregation == 'Trimestre':
-            data[aggregation] = data.index.quarter
-        elif aggregation == 'Mês':
-            data[aggregation] = data.index.month
+        # Reset index to be used by data_aggregation function
+        data.reset_index(names='date', inplace=True)
+        data_agg = data_aggregation(data=data, aggregation=aggregation, function=function)
 
-        data_agg = data.groupby(aggregation, as_index=True).apply(function).copy()
-        #data_agg = data_aggregation(data, aggregation=aggregation, function=function)
         if len(self._axis_y) > 1:
-            fig = px.bar(data_agg['Close'], y=self._axis_y)
+            fig = px.bar(data_agg['Close'], x=data_agg.index, y=self._axis_y, barmode='group')
             fig.update_layout(
                 xaxis_title='',
-                yaxis_title=y_label)
+                yaxis_title='R$',
+                xaxis=dict(type='category'))
             st.plotly_chart(fig)
         else:
-            fig = px.bar(data_agg, y='Close')
+            fig = px.bar(data_agg, x=data_agg.index, y='Close')
             fig.update_layout(
                 xaxis_title=self._axis_y[0],
-                yaxis_title=y_label)
+                yaxis_title='R$',
+                xaxis=dict(type='category'))
             st.plotly_chart(fig, use_container_width=True)
 
 

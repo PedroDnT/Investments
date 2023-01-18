@@ -224,4 +224,6 @@ def request_data(selected_tickers: list, start_date: str):
                 market negatiation
     '''
     today = date.today()
-    return yf.download(tickers=selected_tickers, start=start_date, end=today)
+    df = yf.download(tickers=selected_tickers, start=start_date, end=today)
+    df.reset_index(inplace=True)
+    return df

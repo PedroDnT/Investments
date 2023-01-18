@@ -1,5 +1,7 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
+from datetime import timedelta, datetime
 
 
 def visualizations(analyzer: object, view: str, check: bool):
@@ -10,25 +12,17 @@ def visualizations(analyzer: object, view: str, check: bool):
                 analyzer.serie_decomposition()
             elif view == 'Histograma':
                 st.subheader('Distribuição')
-                try:
-                    analyzer.histogram_view()
-                except:
-                    analyzer.histogram_view('R$')
+                analyzer.histogram_view()
             elif view == 'Boxplot':
                 st.subheader('Boxplot')
-                try:
-                    analyzer.boxplot_view()
-                except:
-                    analyzer.boxplot_view('R$')
+                analyzer.boxplot_view()
             elif view == 'Barplot':
+                # Aggregation options
                 function_dict = {'Soma': np.sum, 'Média': np.mean}
                 agg = st.selectbox('Período', ['Ano', 'Trimestre', 'Mês'])
                 function = st.selectbox('Função', function_dict.keys())
                 st.subheader('Barplot')
-                try:
-                    analyzer.barplot_view(aggregation=agg, function=function_dict[function])
-                except:
-                    analyzer.barplot_view(y_label='R$', aggregation=agg, function=function_dict[function])
+                analyzer.barplot_view(aggregation=agg, function=function_dict[function])
             elif view == 'Estatística Descritiva':
                 st.subheader('Estatística Descritiva')
                 analyzer.descriptive_statistics()
@@ -39,3 +33,13 @@ def visualizations(analyzer: object, view: str, check: bool):
 def view_list():
     return ['Série Temporal', 'Sazonalidade e Tendência', 'Histograma', 'Boxplot', 'Barplot', 
             'Estatística Descritiva', 'Correlação Linear']
+
+
+def date_interval(view: str): 
+    year_before_today = datetime.today() - timedelta(days=365)
+    if view == 'Sazonalidade e Tendência': 
+        year_before_today -= timedelta(days=365)
+    initial_date = pd.to_datetime(st.sidebar.date_input('Data inicial', year_before_today))
+    end_date = pd.to_datetime(st.sidebar.date_input('Data final', datetime.today()))
+    return initial_date, end_date
+    

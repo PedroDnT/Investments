@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import date, timedelta
 from data_viz.analysis import StockPriceViz 
 from etl.catch_clean import request_data
-from screens.view_options import visualizations, view_list
+from screens.view_options import visualizations, view_list, date_interval
 
 
 def stock_price_screen(carteira: pd.DataFrame):
@@ -17,22 +17,18 @@ def stock_price_screen(carteira: pd.DataFrame):
     option_view = view_list()
     # Insert extra view
     option_view.insert(1, 'Candlestick')
-    year_before_date = date.today() - timedelta(days=365)
     # Screen flow
     visualize_stocks = st.sidebar.multiselect('Stocks', carteira['código'].values, default='AMBEV S/A')
     selected_tickers = carteira[carteira['código'].isin(visualize_stocks)]['index'].tolist()
+    # Date range definition
     if visualize_stocks:
         # Select the visualization type option
         view = st.sidebar.selectbox('Gráfico', option_view)
-        # Define start date
-        if view == 'Sazonalidade e Tendência' or 'Barplot':
-            # Ensure two years to calculate decomposition
-            start_date = str(st.sidebar.date_input('Data inicial', year_before_date - timedelta(days=365)))
-        else:
-            start_date = str(st.sidebar.date_input('Data inicial', year_before_date))
+        # Define date interval
+        start_date, end_date = date_interval(view=view)
         # Download data from Yahoo Finance
         stock_data = request_data(selected_tickers, start_date)
-        stock_viz = StockPriceViz(stock_data, selected_tickers)
+        stock_viz = StockPriceViz(stock_data, start_date, end_date, selected_tickers)
         # This variable avoid unecessary view check inside visualization function
         check_other_options = True
         if view == 'Candlestick': 
