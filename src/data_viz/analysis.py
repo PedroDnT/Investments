@@ -88,7 +88,7 @@ class AnalysisSeries(DataAnalysis):
         :param y_label: Label y of serie
         :param data_slice: Pandas DataFrame with selected initial date
         '''
-        super().__init__(data, axis_y, start_date, end_date)
+        super().__init__(data, start_date, end_date, axis_y)
         self._axis_x = axis_x
         self._x_label = x_label
         self._y_label = y_label
@@ -200,6 +200,7 @@ class AnalysisSeries(DataAnalysis):
                 data.index = pd.to_datetime(data.index) 
                 # Decompose time serie with statsmodels
                 dec = seasonal_decompose(data[self._axis_y], period=12)
+
                 # Create DataFrame of seasonality and trend
                 df_dec = pd.DataFrame({'date': dec.seasonal.index, self._axis_y[0]: dec.seasonal.values})
                 df_tred = pd.DataFrame({'date': dec.trend.index, self._axis_y[0]: dec.trend.values})
@@ -227,8 +228,8 @@ class StockPriceViz(DataAnalysis):
         '''
         super().__init__(data, start_date, end_date, axis_y)
         self._data_norm = data_norm
-        self._data = self._data.loc[(self._data['Date'] >= self._start_date) & 
-                                    (self._data['Date'] <= self._end_date)]
+        self._data = self._data.loc[(self._data.index >= self._start_date) & 
+                                    (self._data.index <= self._end_date)]
 
     
     def candlestick(self):

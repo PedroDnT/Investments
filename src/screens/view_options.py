@@ -38,8 +38,14 @@ def view_list():
 def date_interval(view: str): 
     year_before_today = datetime.today() - timedelta(days=365)
     if view == 'Sazonalidade e Tendência': 
-        year_before_today -= timedelta(days=365)
+        # Ensure 24 months to calculate seasonality
+        year_before_today -= timedelta(days=365)  
+        # Ensure to get first day of month
+        year_before_today -= timedelta(days=datetime.today().day - 1)
+
+
     initial_date = pd.to_datetime(st.sidebar.date_input('Data inicial', year_before_today))
     end_date = pd.to_datetime(st.sidebar.date_input('Data final', datetime.today()))
+    
     return initial_date, end_date
     

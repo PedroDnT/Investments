@@ -40,7 +40,6 @@ def funds_screen(data: pd.DataFrame()):
     if fund_selected:
         # Data Viz
         # Date definition (One Year before as default)
-        year_before_date = date.today() - timedelta(days=365)
         view_options_list = view_list()
         view = st.sidebar.selectbox('Gráfico', view_options_list)
         # Date interval
