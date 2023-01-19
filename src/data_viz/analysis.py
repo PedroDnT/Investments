@@ -346,7 +346,8 @@ class StockPriceViz(DataAnalysis):
         '''
         data = self._data.copy()
         # Reset index to be used by data_aggregation function
-        data.reset_index(names='date', inplace=True)
+        data.reset_index(inplace=True)
+        data.rename(columns={'Date': 'date'}, inplace=True)
         data_agg = data_aggregation(data=data, aggregation=aggregation, function=function)
 
         if len(self._axis_y) > 1:
