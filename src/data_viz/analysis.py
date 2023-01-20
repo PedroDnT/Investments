@@ -15,7 +15,8 @@ class DataAnalysis:
     '''
     --> Define the data and indicators to be analyzed
     '''
-    def __init__(self, data: pd.DataFrame, start_date: str, end_date: str, axis_y: list):
+    def __init__(self, data: pd.DataFrame, start_date: str, end_date: str, axis_y: list, 
+                 data_norm: pd.DataFrame):
         '''
         :param data: Data source to analyze
         :param y_axis: Selected columns in Pandas DataFrame
@@ -24,6 +25,8 @@ class DataAnalysis:
         self._start_date = start_date
         self._end_date = end_date
         self._axis_y = axis_y
+        self._data_norm = data_norm
+
 
 
     def correlation(self):
@@ -54,11 +57,12 @@ class DataAnalysis:
 
         :param axis_y: Stocks series selected
         '''
-        for column in self._axis_y:
-            normalized = list()
-            for row in self._data[column]:
-                normalized.append(row / self._data[column].iloc[0])
-            self._data[column] = normalized
+        self._data_norm = self._data.copy()
+        if len(self._axis_y) > 1:
+            for column in self._axis_y:
+                self._data_norm.loc[:, column] = self._data_norm.loc[:, column] / self._data_norm[column].values[0]
+        else:
+            self._data_norm.loc[:, self._axis_y] = self._data_norm.loc[:, self._axis_y] / self._data_norm[self._axis_y].values[0]
 
 
     def normalized_metric(self):
@@ -67,8 +71,9 @@ class DataAnalysis:
         ''' 
         dic = dict()
         for column in self._axis_y:  
-            dic[column] = [round((self._data[column].iloc[-1] - self._data[column].iloc[0]), 2)]
-        df = pd.DataFrame(dic)
+            dic[column] = [round((self._data_norm[column].iloc[-1] - self._data_norm[column].iloc[0]), 2)]
+        df = pd.DataFrame(dic).stack()
+        df.rename(index='%', inplace=True)
         df = Styler(df, 2)
         st.write('Crescimento relativo %')
         st.dataframe(df)
@@ -78,7 +83,8 @@ class AnalysisSeries(DataAnalysis):
     '''
     Analyzes the time series of the selected indicator(s)
     '''
-    def __init__(self, data, start_date, end_date, axis_y, axis_x='date', x_label='', y_label='%'):
+    def __init__(self, data, start_date, end_date, axis_y, axis_x='date', x_label='', y_label='%',
+                 data_norm=pd.DataFrame()):
         '''
         :param data: DataFrame Pandas of the time series with monthly indicators
         :param axis_y: Selected columns in Pandas DataFrame
@@ -88,7 +94,7 @@ class AnalysisSeries(DataAnalysis):
         :param y_label: Label y of serie
         :param data_slice: Pandas DataFrame with selected initial date
         '''
-        super().__init__(data, start_date, end_date, axis_y)
+        super().__init__(data, start_date, end_date, axis_y, data_norm)
         self._axis_x = axis_x
         self._x_label = x_label
         self._y_label = y_label
@@ -100,7 +106,11 @@ class AnalysisSeries(DataAnalysis):
         --> Visualize the selected indicator
         ''' 
         # Visualization
-        fig = px.line(self._data, x=self._axis_x, y=self._axis_y)
+        if self._data_norm.empty:
+            data = self._data.copy()
+        else:
+            data = self._data_norm.copy()
+        fig = px.line(data, x=self._axis_x, y=self._axis_y)
         annotations = list()
         annotations.append(dict(xref='paper', yref='paper', x=0.5, y=-0.1,
                               xanchor='center', yanchor='top',
