@@ -1,11 +1,16 @@
 import pandas as pd
 import streamlit as st
-from data_viz.analysis import AnalysisSeries
-from datetime import date, timedelta
+from data_viz.analysis_series import AnalysisSeries
 from screens.view_options import visualizations, view_list, date_interval
 
 
 def funds_screen(data: pd.DataFrame()):
+    '''
+    This function creates the screen of Brazilian Investment Funds with at least 1000 shareholders on average in December 2022 
+
+    Parameters: data : Pandas DataFrame 
+                    DataFrame of Investment Funds historical data
+    '''
     indicator_dict = {'Valor Cota': ['vl_quota', 'R$'], 'Patrimônio Líquido': ['vl_patrim_liq', 'R$'], 
                     'Captação Dia': ['captc_dia', 'R$'], 'Resgate Dia': ['resg_dia', 'R$'], 
                     'Cotistas': ['nr_cotst', 'Nº'], 'Valor total da carteira': ['vl_total', 'R$']}

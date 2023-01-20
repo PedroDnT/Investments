@@ -13,10 +13,10 @@ import requests
 import json
 
 
-#----------------------------Solving problem: unsafe legacy renegotiation disabled (_ssl.c:997)
 class CustomHttpAdapter (requests.adapters.HTTPAdapter):
     '''
-    --> "Transport adapter" that allows us to use custom ssl_context.
+    "Transport adapter" that allows us to use custom ssl_context.
+    Solving problem: unsafe legacy renegotiation disabled (_ssl.c:997)
 
     Source: https://py4u.org/questions/71603314/
     '''
@@ -29,8 +29,13 @@ class CustomHttpAdapter (requests.adapters.HTTPAdapter):
             num_pools=connections, maxsize=maxsize,
             block=block, ssl_context=self.ssl_context)
 
-#----------------------------Solving problem: unsafe legacy renegotiation disabled (_ssl.c:997)
+#----------------------------
 def get_legacy_session():
+    '''
+    Solving problem: unsafe legacy renegotiation disabled (_ssl.c:997)
+
+    Source: https://py4u.org/questions/71603314/
+    '''
     ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
     ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
     session = requests.session()
@@ -40,7 +45,7 @@ def get_legacy_session():
 
 class DownloadFilesBrGov:
     '''
-    --> Download files from the Brazilian Government Services
+    Download files from the Brazilian Government Services
     '''
     def __init__(self,
                 initial_date='01/01/2015', final_date=date.today().strftime('%d/%m/%Y'),
@@ -67,9 +72,12 @@ class DownloadFilesBrGov:
 
     def catch_json(self, url):
         '''
-        --> Catch the information from URL in JSON format
+        Catch the information from URL in JSON format
 
-        :param url: URL of API service
+        Parameters: param url : URL of API service
+
+        Returns: Dictionary
+                    Dictionary of json content
         '''
         data_json = get_legacy_session().get(url)
         data_dic = json.loads(data_json.content)
@@ -78,7 +86,7 @@ class DownloadFilesBrGov:
 
     def series_central_bank(self):
         '''
-        --> Download the series via the Central Bank of Brazil API
+        Download the series via the Central Bank of Brazil API
         '''
         for index in range(len(self._code_series_bcb)):
             api_bcb = 'http://api.bcb.gov.br/dados/serie/bcdata.sgs.' + self._code_series_bcb[index] + '/dados?formato=json&dataInicial=' + self._initial_date + '&dataFinal=' + self._final_date
@@ -94,7 +102,7 @@ class DownloadFilesBrGov:
 
     def series_ibge(self):
         '''
-        --> Download the series through the API of the Brazilian Institute of Geography and Statistics
+        Download the series through the API of the Brazilian Institute of Geography and Statistics
         '''
         for index in range(len(self._indicators_ibge)):
             data = self.catch_json(self._indicators_ibge[index])
@@ -110,7 +118,7 @@ class DownloadFilesBrGov:
 
 class BrazilianIndicators:
     '''
-    --> Takes and cleans information about investments and indexes and group it into a DataFrame Pandas
+    Takes and cleans information about investments and indexes and group it into a DataFrame Pandas
     '''
     def __init__(self, indicators_bcb=['Poupança', 'CDI', 'Selic'], indicators_ibge=['INPC', 'IPCA'],
                 data_frame_central_bank=pd.DataFrame(), 
@@ -135,7 +143,7 @@ class BrazilianIndicators:
 
     def clean_data_bcb(self):
         '''
-        --> Read and process the data downloaded in the Bank's Time Series Management System Central, the data is monthly.
+        Read and process the data downloaded in the Bank's Time Series Management System Central, the data is monthly.
         '''
         for index in range(len(self._files_central_bank)):
             data = pd.read_csv(self._files_central_bank[index])
@@ -149,7 +157,7 @@ class BrazilianIndicators:
 
     def clean_data_ibge(self):
         '''
-        --> Read and process the data made available by the IBGE, the data are monthly
+        Read and process the data made available by the IBGE, the data are monthly
         '''
         for index in range(len(self._files_ibge)):
             data = pd.read_csv(self._files_ibge[index])
@@ -168,12 +176,27 @@ class BrazilianIndicators:
 
     def data_frame_indicators(self):
         '''
-        --> Gather all files into a DataFrame Pandas
+        Gather all files into a DataFrame Pandas
+
+        Returns: DataFrame
+                    Pandas DataFrame of merged indicators form Central Bank and IBGE
         '''
         data_frame = pd.merge(self._data_frame_central_bank, self._data_frame_ibge, on='date')
         return data_frame
 
 def carteira_ibov(tickers_file_path: str, cols: list):
+    '''
+    Read csv file related of IBOV theoretical portfolio
+
+    Parameters: tickers_file_path : String
+                    Directory of CSV file
+
+                cols : List
+                    List of columns to be selected
+
+    Returns: Pandas DataFrame
+                DataFrame of readed data  
+    '''
     carteira = pd.read_csv(tickers_file_path, encoding='ISO-8859-1', sep=';', skiprows=1, skipfooter=2,
                             usecols=cols, engine='python')
     carteira.reset_index(inplace=True)
@@ -227,3 +250,16 @@ def request_data(selected_tickers: list, start_date: str):
     df = yf.download(tickers=selected_tickers, start=start_date, end=today)
     #df.reset_index(inplace=True)
     return df
+
+
+def data_aggregation(data: pd.DataFrame, aggregation: str, function: object):
+    if aggregation == 'Ano':
+        data[aggregation] = data['date'].dt.year
+    elif aggregation == 'Trimestre':
+        data[aggregation] = data['date'].dt.quarter
+    elif aggregation == 'Mês':
+        data[aggregation] = data['date'].dt.month
+
+    data_agg = data.groupby(aggregation, as_index=True).apply(function).copy()
+
+    return data_agg

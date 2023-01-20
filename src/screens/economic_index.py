@@ -1,13 +1,12 @@
 import streamlit as st
 import pandas as pd
-from data_viz.analysis import AnalysisSeries
+from data_viz.analysis_series import AnalysisSeries
 from screens.view_options import visualizations, view_list, date_interval
-from datetime import datetime
 
 
 def economic_index_screen(data: pd.DataFrame):
     '''
-    --> This function create the screen of Brazilian Economic Index. 
+    This function create the screen of Brazilian Economic Index. 
 
     Parameters: data : Pandas DataFrame 
                     DataFrame with historical index data downloaded from IBGE and Banco Central do Brasil

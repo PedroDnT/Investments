@@ -5,7 +5,21 @@ from datetime import timedelta, datetime
 
 
 def visualizations(analyzer: object, view: str, check: bool):
-        # Define start year
+    '''
+    Show the visualizations options common to all indicators 
+
+    Parameters: analyzer : Object 
+                    Class with visualizations to be showed
+    
+                view: String
+                    Selected view option
+
+                check: Boolean
+                    To avoid unnecessary checking if the selected view is not available here
+
+    Returns: Plotly Chart
+                Plotly chart of selected view
+    '''
         if check:
             if view == 'Sazonalidade e Tendência':
                 st.subheader('Sazonalidade e Tendência')
@@ -31,11 +45,29 @@ def visualizations(analyzer: object, view: str, check: bool):
                 analyzer.correlation()
 
 def view_list():
+    '''
+    List of generalized view 
+
+    Returns: List
+                List with view options common to all analyzer
+    '''
     return ['Série Temporal', 'Sazonalidade e Tendência', 'Histograma', 'Boxplot', 'Barplot', 
             'Estatística Descritiva', 'Correlação Linear']
 
 
 def date_interval(view: str): 
+    '''
+    Define the initial and final date selected to analyze data
+
+    Parameters: view : String
+                    Selected view to increase the initial date plus 365 days if "Seanalidade e Tendência" 
+                    was selected otherwise 365 before is predefined as default period
+
+    Returns: initial_date : Pandas datetime
+                Initial date
+             end_date : Pandas datetime
+                Final date
+    '''
     year_before_today = datetime.today() - timedelta(days=365)
     if view == 'Sazonalidade e Tendência': 
         # Ensure 24 months to calculate seasonality

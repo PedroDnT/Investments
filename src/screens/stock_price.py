@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import date, timedelta
-from data_viz.analysis import StockPriceViz 
+from data_viz.stock_price_viz import StockPriceViz 
 from etl.catch_clean import request_data
 from screens.view_options import visualizations, view_list, date_interval
 
