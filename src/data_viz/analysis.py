@@ -230,13 +230,13 @@ class StockPriceViz(DataAnalysis):
     '''
     Data visualization of Yahoo Finance historical data
     '''
-    def __init__(self, data, start_date, end_date, axis_y, data_norm=pd.DataFrame):
+    def __init__(self, data, start_date, end_date, axis_y, data_norm=pd.DataFrame()):
         '''
         :param data: Requested data
         :param data_norm: Data in normalized format
         :param tickers: Selected company tickers to download data
         '''
-        super().__init__(data, start_date, end_date, axis_y)
+        super().__init__(data, start_date, end_date, axis_y, data_norm)
         self._data_norm = data_norm
         self._data = self._data.loc[(self._data.index >= self._start_date) & 
                                     (self._data.index <= self._end_date)]
